@@ -6,21 +6,12 @@ services:
     # https://hub.docker.com/_/postgres
     image: postgres:9.6.21
     volumes:
-      # compose 파일의 상대 경로로 지정
-      - ./database_volume:/var/lib/postgresql/data
+      - database_volume:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=db
-      - POSTGRES_USER=username
-      - POSTGRES_PASSWORD=password  # 필수
+      - POSTGRES_PASSWORD=password
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8
-    # https://docs.docker.com/engine/reference/builder/#healthcheck
-    # {start_period} 대기 후 {interval}초 마다 {timeout}초 내에 {test}를 수행하는지 확인. 실패시 {retries}회 재시도.
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      start_period: 5s
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    networks:
+      - backend
 
   app-server:
     build:
@@ -28,18 +19,27 @@ services:
       context: ..
       # 변경된 경로를 기준으로 Dockerfile의 상대경로 지정
       dockerfile: ./docker/Dockerfile.dev
+    depends_on:
+      - database
+    networks: 
+      - frontend
+      - backend
     volumes:
       - ..:/app
-    ports:
-      - "8000:8000"
-    environment: 
-      - PYTHONUNBUFFERED=0
+    environment:
       # dev.py 활용
       - DJANGO_SETTINGS_MODULE=backend.settings.dev
     working_dir: /app
+    # TODO: pg_isready를 확인하여 db가 준비되었는지 확인하는 과정이 필요하다.
     command: >
       sh -c "python manage.py migrate &&
              gunicorn --workers=3 --bind 0:8000 backend.wsgi"
-    depends_on:
-      database:
-        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+volumes:
+  database_volume:
+
+networks:
+  frontend:
+  backend:
