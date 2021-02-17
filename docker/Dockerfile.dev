@@ -1,0 +1,17 @@
+# Development
+
+# https://hub.docker.com/_/python
+FROM python:3.9
+
+# .pyc 파일 생성 안함
+ENV PYTHONDONTWRITEBYTECODE 1
+# std 버퍼 제거
+ENV PYTHONUNBUFFERED 1
+
+# requirements의 변동이 있을 경우 이미지를 다시 빌드해야 함
+ADD ./requirements/common.txt /app/requirements/
+ADD ./requirements/dev.txt /app/requirements/
+
+WORKDIR /app
+
+RUN pip install -r requirements/dev.txt
