@@ -19,7 +19,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Third apps
+    "rest_framework",
     # Local apps
+    "accountapp",
+    "worldcupapp",
 ]
 
 MIDDLEWARE = [
@@ -52,6 +55,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
+
+AUTH_USER_MODEL = "accountapp.CustomUser"
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
