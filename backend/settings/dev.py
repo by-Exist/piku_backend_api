@@ -1,14 +1,22 @@
 from .common import *
 import environ
 
+LOCAL_ENV_PATH = "backend/settings/local.env"
+USE_GITHUB_WORKFLOW_ENV = os.environ.get("GITHUB_WORKFLOW", False)
 
-# set casting default value
-env = environ.Env(
-    # DEBUG=(bool, False)
-)
-
-# reading .env file
-environ.Env.read_env()
+if USE_GITHUB_WORKFLOW_ENV:
+    # use github workflow env
+    env = environ.Env(
+        DJANGO_DEBUG=(bool, os.environ.get("DJANGO_DEBUG")),
+        DJANGO_SECRET_KEY=(str, os.environ.get("DJANGO_SECRET_KEY")),
+        DJANGO_ALLOWED_HOSTS=(str, os.environ.get("DJANGO_ALLOWED_HOSTS")),
+        DJANGO_DATABASE_URL=(str, os.environ.get("DJANGO_DATABASE_URL")),
+    )
+else:
+    # use .env file
+    env = environ.Env()
+    with open(BASE_DIR / LOCAL_ENV_PATH) as env_file:
+        environ.Env.read_env(env_file)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DJANGO_DEBUG")

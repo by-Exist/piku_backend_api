@@ -1,4 +1,5 @@
 .git/
+.github/
 .vscode/
 _env/
 _erd/
