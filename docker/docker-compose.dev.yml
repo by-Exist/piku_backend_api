@@ -27,10 +27,12 @@ services:
     volumes:
       - ..:/app
     working_dir: /app
-    # TODO: pg_isready를 확인하여 db가 준비되었는지 확인하는 과정이 필요하다.
+    environment: 
+      - DJANGO_SETTINGS_MODULE=backend.settings.dev
     command: >
-      sh -c "python manage.py migrate &&
-             gunicorn --workers=3 --bind 0:8000 backend.wsgi"
+      sh -c "python manage.py makemigrations &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"
 
