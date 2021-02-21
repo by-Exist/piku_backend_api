@@ -9,6 +9,7 @@ from rest_framework_nested import routers
 from rest_framework_simplejwt import views as simplejwt_views
 from accountapp import views as accountapp_views
 from worldcupapp import views as worldcupapp_views
+from reportapp import views as reportapp_views
 
 router = routers.DefaultRouter()
 router.register("accounts", accountapp_views.UserViewSet)
@@ -19,6 +20,7 @@ worldcup_router.register("medias", worldcupapp_views.MediaViewSet, basename="med
 worldcup_router.register(
     "comments", worldcupapp_views.CommentViewSet, basename="comments"
 )
+router.register("reports", reportapp_views.ReportViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

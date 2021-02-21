@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     "rest_framework",
     # Local apps
     "accountapp",
+    "reportapp",
     "worldcupapp",
 ]
 
