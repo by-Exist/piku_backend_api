@@ -93,3 +93,14 @@ STATIC_ROOT = BASE_DIR / PROJECT_NAME / "_static"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / PROJECT_NAME / "_media"
+
+
+# Rest Framework Settings
+# detail => from rest_framework.settings import DEFAULTS
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
