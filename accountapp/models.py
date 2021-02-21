@@ -8,7 +8,7 @@ class CustomUser(AbstractUser):
 
 
 class Profile(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     nickname = models.CharField(
         "닉네임", unique=True, max_length=13, validators=[MinLengthValidator(3)]
     )
