@@ -1,7 +1,7 @@
 # 설명서
 
-- 본 레포지토리는 [PIKU(이미지 월드컵)](https://www.piku.co.kr/)에서 사용할 백엔드 API를 설계하기 위해 작성되었습니다.
-- Backend 환경을 구축하고, Restful API를 구현하여 배포를 수행합니다.
+- 본 레포지토리는 [PIKU(이미지 월드컵)](https://www.piku.co.kr/)을 클론할 목적으로 사용할 백엔드 API를 설계하기 위해 작성되었습니다.
+- 개발 환경을 구축하고, Restful API를 구현하여 실제 배포를 수행합니다.
 
 ## Plan
 
@@ -16,15 +16,15 @@
   - [ms api-design](https://docs.microsoft.com/ko-kr/azure/architecture/best-practices/api-design)
   - [RESTful URL 설계](https://blog.appkr.dev/files/again2011_workshop_keynote_2.pdf)
   - [REST API 설계 해보기](https://digitalbourgeois.tistory.com/54)
-- 호스팅에 활용할 서버 자원을 대여한다.
-  - 웹 서버, 웹 어플리케이션 서버, DB, Storage, ...
+- Docker를 활용하여 로컬 개발환경을 구축한다.
+  - [도커 컴포즈를 활용하여 완벽한 개발 환경 구성하기](https://www.44bits.io/ko/post/almost-perfect-development-environment-with-docker-and-docker-compose#build)
 - CI(지속적 통합) - github action을 활용하여 push/pull_request시 수행
   - [black](https://github.com/marketplace?type=actions&query=black)
   - [test, build image...](https://medium.com/intelligentmachines/github-actions-end-to-end-ci-cd-pipeline-for-django-5d48d6f00abf)
+- 호스팅에 활용할 서버 자원을 대여한다.
+  - 웹 서버, 웹 어플리케이션 서버, DB, Storage, ...
 - CD(지속적 배포) - github action을 활용하여 원할 때 서비스 배포를 수행하도록 구현한다.
   - Docker Compose 활용
-- Docker를 활용하여 로컬 개발환경을 구축한다.
-  - [도커 컴포즈를 활용하여 완벽한 개발 환경 구성하기](https://www.44bits.io/ko/post/almost-perfect-development-environment-with-docker-and-docker-compose#build)
 - Django Debug Toolbar를 활용하여 DB 히트를 확인하고 쿼리를 최적화한다.
   - [django-debug-toolbar](https://django-debug-toolbar.readthedocs.io/en/latest/)
   - [select_related, prepetch_related](https://docs.djangoproject.com/en/3.1/ref/models/querysets/#select-related)
@@ -39,12 +39,9 @@
 
 ## 상세정보
 
-### 1. Django의 개인적인 초기 환경 설정을 기록한다
+### 1. Django의 개인적인 초기 환경을 설정한다
 
-- 초기 settings.py 설정은 initialization 이름의 브랜치를 통해 관리한다.
 - secrets
-  - [django-environ](https://django-environ.readthedocs.io/en/latest/)
-    - 하나의 파일(.env)에 기록한 여러 환경변수를 사용할 수 있도록 돕는 라이브러리
   - [django-environ-docker](https://pypi.org/project/django-environ-docker/)
     - 도커의 secret을 통해 전달된 여러 환경변수를 사용할 수 있도록 돕는 라이브러리
 
@@ -71,25 +68,25 @@
 
   - account
 
-    | account url                   | http method | mixin method   |
-    | ----------------------------- | ----------- | -------------- |
-    | \<domain>/account             | get         | list           |
-    | \<domain>/account             | post        | create         |
-    | \<domain>/account/\<username> | get         | retrieve       |
-    | \<domain>/account/\<username> | put         | update         |
-    | \<domain>/account/\<username> | patch       | partial update |
-    | \<domain>/account/\<username> | delete      | destroy        |
+    | account url             | http method | mixin method   |
+    | ----------------------- | ----------- | -------------- |
+    | \<domain>/account       | get         | list           |
+    | \<domain>/account       | post        | create         |
+    | \<domain>/account/\<id> | get         | retrieve       |
+    | \<domain>/account/\<id> | put         | update         |
+    | \<domain>/account/\<id> | patch       | partial update |
+    | \<domain>/account/\<id> | delete      | destroy        |
 
   - profile
 
-    | profile url                   | http method | mixin method   |
-    | ----------------------------- | ----------- | -------------- |
-    | \<domain>/profile             | get         | list           |
-    | \<domain>/profile             | post        | create         |
-    | \<domain>/profile/\<username> | get         | retrieve       |
-    | \<domain>/profile/\<username> | put         | update         |
-    | \<domain>/profile/\<username> | patch       | partial update |
-    | \<domain>/profile/\<username> | delete      | destroy        |
+    | profile url             | http method | mixin method   |
+    | ----------------------- | ----------- | -------------- |
+    | \<domain>/profile       | get         | list           |
+    | \<domain>/profile       | post        | create         |
+    | \<domain>/profile/\<id> | get         | retrieve       |
+    | \<domain>/profile/\<id> | put         | update         |
+    | \<domain>/profile/\<id> | patch       | partial update |
+    | \<domain>/profile/\<id> | delete      | destroy        |
 
   - jwt token
 
@@ -109,27 +106,27 @@
     | \<domain>/worldcup/\<id> | patch       | partial update |
     | \<domain>/worldcup/\<id> | delete      | destroy        |
 
-  - media
+  - worldcup -> media
 
-    | media url             | http method | mixin method   |
-    | --------------------- | ----------- | -------------- |
-    | \<domain>/media       | get         | list           |
-    | \<domain>/media       | post        | create         |
-    | \<domain>/media/\<id> | get         | retrieve       |
-    | \<domain>/media/\<id> | put         | update         |
-    | \<domain>/media/\<id> | patch       | partial update |
-    | \<domain>/media/\<id> | delete      | destroy        |
+    | media url                                     | http method | mixin method   |
+    | --------------------------------------------- | ----------- | -------------- |
+    | \<domain>/worldcup/\<worldcup_id>/media       | get         | list           |
+    | \<domain>/worldcup/\<worldcup_id>/media       | post        | create         |
+    | \<domain>/worldcup/\<worldcup_id>/media/\<id> | get         | retrieve       |
+    | \<domain>/worldcup/\<worldcup_id>/media/\<id> | put         | update         |
+    | \<domain>/worldcup/\<worldcup_id>/media/\<id> | patch       | partial update |
+    | \<domain>/worldcup/\<worldcup_id>/media/\<id> | delete      | destroy        |
 
-  - comment
+  - worldcup -> comment
 
-    | comment url             | http method | mixin method   |
-    | ----------------------- | ----------- | -------------- |
-    | \<domain>/comment       | get         | list           |
-    | \<domain>/comment       | post        | create         |
-    | \<domain>/comment/\<id> | get         | retrieve       |
-    | \<domain>/comment/\<id> | put         | update         |
-    | \<domain>/comment/\<id> | patch       | partial update |
-    | \<domain>/comment/\<id> | delete      | remove         |
+    | comment url                                     | http method | mixin method   |
+    | ----------------------------------------------- | ----------- | -------------- |
+    | \<domain>/worldcup/\<worldcup_id>/comment       | get         | list           |
+    | \<domain>/worldcup/\<worldcup_id>/comment       | post        | create         |
+    | \<domain>/worldcup/\<worldcup_id>/comment/\<id> | get         | retrieve       |
+    | \<domain>/worldcup/\<worldcup_id>/comment/\<id> | put         | update         |
+    | \<domain>/worldcup/\<worldcup_id>/comment/\<id> | patch       | partial update |
+    | \<domain>/worldcup/\<worldcup_id>/comment/\<id> | delete      | destroy        |
 
   - report
 
@@ -143,3 +140,19 @@
     | \<domain>/report/\<id> | put         | update         |
     | \<domain>/report/\<id> | patch       | partial update |
     | \<domain>/report/\<id> | delete      | destroy        |
+
+### 5. Docker를 활용하여 로컬 개발환경을 구축한다
+
+- Dockerfile과 docker-compose를 활용하여 개발환경과 배포환경을 일치시킨다.
+  - [Dockerfile.dev](./docker/Dockerfile.dev)
+  - [docker-compose.dev.yml](./docker/docker-compose.dev.yml)
+
+### 6. Github action을 활용하여 CI 환경을 구축한다
+
+- [코드 스타일 체크](./.github/workflows/formatting.yml)
+- [테스트 코드 수행](./.github/workflows/testing.yml)
+- 배포에 활용될 이미지 생성
+
+### 7. API 구현 및 문서화
+
+- [친절하게 django rest framework api 문서 자동화하기](https://medium.com/towncompany-engineering/%EC%B9%9C%EC%A0%88%ED%95%98%EA%B2%8C-django-rest-framework-api-%EB%AC%B8%EC%84%9C-%EC%9E%90%EB%8F%99%ED%99%94%ED%95%98%EA%B8%B0-drf-yasg-c835269714fc)
