@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Third apps
+    "drf_yasg",
     "rest_framework",
     # Local apps
     "accountapp",
