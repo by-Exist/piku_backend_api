@@ -1,46 +1,66 @@
-from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from accountapp import models as accountapp_models
-from backend.mixins import ActionSerializerMixin
 
+# ProfileSerializer
+class ProfileSerializer(serializers.ModelSerializer):
 
-class ProfileSerializer(ActionSerializerMixin, serializers.ModelSerializer):
+    user = serializers.HyperlinkedRelatedField(
+        view_name="customuser-detail", read_only=True
+    )
+
     class Meta:
         model = accountapp_models.Profile
-        fields = "__all__"
+        fields = ("id", "nickname", "avatar", "email", "user")
 
 
-class UserSerializer(ActionSerializerMixin, serializers.ModelSerializer):
-
-    avatar = serializers.ImageField(source="profile.avatar")
-    nickname = serializers.CharField(source="profile.nickname")
-
+class ProfileListSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = accountapp_models.CustomUser
-        fields = "__all__"
-        # TODO: write_only field가 swagger에 정상적으로 표기되지 않는 문제 확인
-        # https://www.google.com/search?q=write_only+field+swagger&oq=write_only+field+swagger&aqs=chrome..69i57.5132j0j7&sourceid=chrome&ie=UTF-8
-        extra_kwargs = {"password": {"write_only": True}}
-        action_fields = {
-            "list": {
-                "fields": ["id", "username", "nickname", "avatar"],
-            },
-            # TODO: ...
-            # "create": {
-            #     "fields": ["username", "password"],
-            # },
-            # "retrieve": {
-            #     "fields": ["username", "password"],
-            # },
-            # "update": {
-            #     "fields": ["password"],
-            # },
+        model = accountapp_models.Profile
+        fields = ("id", "url", "nickname", "avatar", "email", "user")
+        extra_kwargs = {
+            "user": {"read_only": True},
         }
 
     def create(self, validated_data):
-        user = get_user_model().objects.create_user(**validated_data)
-        return user
+        validated_data |= {"user": self.context["view"].request.user}
+        return super().create(validated_data)
 
-    # TODO: ...
-    # def update(self, instance, validated_data):
-    #     return super().update(instance, validated_data)
+
+# UserSerializer
+class UserSerializer(serializers.ModelSerializer):
+    profile = ProfileListSerializer(read_only=True)
+
+    class Meta:
+        model = accountapp_models.CustomUser
+        fields = ("id", "username", "password", "profile", "last_login", "date_joined")
+        extra_kwargs = {
+            "username": {"read_only": True},
+            "password": {"write_only": True},
+            "last_login": {"read_only": True},
+            "date_joined": {"read_only": True},
+        }
+
+    def update(self, instance, validated_data):
+        pw = validated_data.pop("password")
+        instance.set_password(pw)
+        instance.save()
+        return instance
+
+
+class UserListSerializer(serializers.HyperlinkedModelSerializer):
+
+    profile = serializers.HyperlinkedRelatedField(
+        view_name="profile-detail", read_only=True
+    )
+
+    class Meta:
+        model = accountapp_models.CustomUser
+        fields = ("id", "url", "profile", "username", "password", "date_joined")
+        extra_kwargs = {
+            "password": {"write_only": True},
+            "date_joined": {"read_only": True},
+        }
+
+    def create(self, validated_data):
+        user = self.Meta.model.objects.create_user(**validated_data)
+        return user
