@@ -8,6 +8,12 @@ class WorldcupSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class MediaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = worldcupapp_models.BaseMedia
+        fields = "__all__"
+
+
 class TextMediaSerializer(serializers.ModelSerializer):
     class Meta:
         model = worldcupapp_models.TextMedia

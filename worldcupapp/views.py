@@ -11,9 +11,12 @@ class WorldcupViewSet(viewsets.ModelViewSet):
 
 class MediaViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
-        worldcup = get_object_or_404(
-            worldcupapp_models.Worldcup, pk=self.kwargs["worldcup_pk"]
-        )
+        try:
+            worldcup = get_object_or_404(
+                worldcupapp_models.Worldcup, pk=self.kwargs["worldcup_pk"]
+            )
+        except KeyError:
+            return worldcupapp_models.BaseMedia
         media_models = {
             "T": worldcupapp_models.TextMedia,
             "I": worldcupapp_models.ImageMedia,
@@ -24,9 +27,12 @@ class MediaViewSet(viewsets.ModelViewSet):
         return MediaModel.objects.all()
 
     def get_serializer_class(self):
-        worldcup = get_object_or_404(
-            worldcupapp_models.Worldcup, pk=self.kwargs["worldcup_pk"]
-        )
+        try:
+            worldcup = worldcupapp_models.Worldcup.objects.get(
+                self.kwargs["worldcup_pk"]
+            )
+        except KeyError:
+            return worldcupapp_serializer.MediaSerializer
         media_serializers = {
             "T": worldcupapp_serializer.TextMediaSerializer,
             "I": worldcupapp_serializer.ImageMediaSerializer,
