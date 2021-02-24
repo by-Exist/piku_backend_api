@@ -1,5 +1,5 @@
-from random import choice
 from django.db import models
+from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core.validators import MinLengthValidator
 
@@ -37,6 +37,9 @@ class Worldcup(models.Model):
     updated_at = models.DateTimeField("수정시각", auto_now=True)
     play_count = models.PositiveIntegerField("플레이 완료 횟수", blank=True, default=0)
 
+    def get_absolute_url(self):
+        return reverse("worldcup-detail", args=[self.id])
+
 
 # 테이블을 만드는 용도로 사용되며, 직접적으로 활용되지는 않음
 class BaseMedia(models.Model):
@@ -45,6 +48,9 @@ class BaseMedia(models.Model):
     media = models.CharField("미디어", max_length=511)
     win_count = models.PositiveIntegerField("승리 횟수", blank=True, default=0)
     choice_count = models.PositiveIntegerField("1:1 선택 횟수", blank=True, default=0)
+
+    def get_absolute_url(self):
+        return reverse("media-detail", args=[self.id])
 
     class Meta:
         db_table = "Medias"
@@ -101,3 +107,6 @@ class Comment(models.Model):
         BaseMedia, null=True, blank=True, on_delete=models.CASCADE, verbose_name="미디어"
     )
     comment = models.CharField("댓글 내용", max_length=511)
+
+    def get_absolute_url(self):
+        return reverse("comment-detail", args=[self.id])

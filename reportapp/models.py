@@ -28,8 +28,10 @@ class Report(models.Model):
     )
     target_id = models.PositiveIntegerField("신고 대상 id")
     reason = models.CharField("신고 사유", choices=Reason.choices, max_length=16)
-    report = models.CharField("신고 내용", max_length=511)
-    image = models.ImageField("증빙 사진", upload_to="reportapp/report/%Y/%m/%d")
+    report = models.CharField("신고 내용", blank=True, max_length=511)
+    image = models.ImageField(
+        "증빙 사진", blank=True, upload_to="reportapp/report/%Y/%m/%d"
+    )
 
     class Meta:
         unique_together = ("target_type", "target_id")
