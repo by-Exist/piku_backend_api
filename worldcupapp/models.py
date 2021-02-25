@@ -11,7 +11,7 @@ class Worldcup(models.Model):
         TEXT = "T", "Text"
         IMAGE = "I", "Image"
         GIF = "G", "Gif"
-        Video = "V", "Image"
+        Video = "V", "Video"
 
     class PublishType(models.TextChoices):
         PUBLIC = "PUBLIC", "공개"
@@ -20,13 +20,15 @@ class Worldcup(models.Model):
 
     creator = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="작성자")
     title = models.CharField(
-        "제목", max_length=63, validators=[MinLengthValidator(10, "열 글자 이상 입력해주세요.")]
+        "제목", max_length=63, validators=[MinLengthValidator(3, "세 글자 이상 입력해주세요.")]
     )
     subtitle = models.CharField("부제", max_length=511)
     media_type = models.CharField(
         "미디어 타입", max_length=1, choices=MediaType.choices, default=MediaType.IMAGE
     )
-    publish_type = models.CharField("배포 방식", max_length=8, choices=PublishType.choices)
+    publish_type = models.CharField(
+        "배포 방식", max_length=8, choices=PublishType.choices, default=PublishType.PRIVATE
+    )
     password = models.CharField(
         "암호",
         blank=True,
@@ -35,7 +37,9 @@ class Worldcup(models.Model):
     )
     created_at = models.DateTimeField("작성시각", auto_now_add=True)
     updated_at = models.DateTimeField("수정시각", auto_now=True)
-    play_count = models.PositiveIntegerField("플레이 완료 횟수", blank=True, default=0)
+    play_count = models.PositiveIntegerField(
+        "플레이 완료 횟수", blank=True, default=0, editable=False
+    )
 
     def get_absolute_url(self):
         return reverse("worldcup-detail", args=[self.id])
@@ -46,8 +50,12 @@ class BaseMedia(models.Model):
     worldcup = models.ForeignKey(Worldcup, on_delete=models.CASCADE, verbose_name="월드컵")
     title = models.CharField("제목", max_length=31)
     media = models.CharField("미디어", max_length=511)
-    win_count = models.PositiveIntegerField("승리 횟수", blank=True, default=0)
-    choice_count = models.PositiveIntegerField("1:1 선택 횟수", blank=True, default=0)
+    win_count = models.PositiveIntegerField(
+        "승리 횟수", blank=True, default=0, editable=False
+    )
+    choice_count = models.PositiveIntegerField(
+        "1:1 선택 횟수", blank=True, default=0, editable=False
+    )
 
     def get_absolute_url(self):
         return reverse("media-detail", args=[self.id])
@@ -59,8 +67,12 @@ class BaseMedia(models.Model):
 class AbstractMedia(models.Model):
     worldcup = models.ForeignKey(Worldcup, on_delete=models.CASCADE, verbose_name="월드컵")
     title = models.CharField("제목", max_length=31)
-    win_count = models.PositiveIntegerField("승리 횟수", blank=True, default=0)
-    choice_count = models.PositiveIntegerField("1:1 선택 횟수", blank=True, default=0)
+    win_count = models.PositiveIntegerField(
+        "승리 횟수", blank=True, default=0, editable=False
+    )
+    choice_count = models.PositiveIntegerField(
+        "1:1 선택 횟수", blank=True, default=0, editable=False
+    )
 
     class Meta:
         abstract = True
