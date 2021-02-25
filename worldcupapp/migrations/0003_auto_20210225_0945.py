@@ -7,29 +7,43 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('worldcupapp', '0002_auto_20210224_1134'),
+        ("worldcupapp", "0002_auto_20210224_1134"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='comment',
-            name='created_at',
-            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now, verbose_name='작성시각'),
+            model_name="comment",
+            name="created_at",
+            field=models.DateTimeField(
+                auto_now_add=True,
+                default=django.utils.timezone.now,
+                verbose_name="작성시각",
+            ),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='comment',
-            name='updated_at',
-            field=models.DateTimeField(auto_now=True, verbose_name='수정시각'),
+            model_name="comment",
+            name="updated_at",
+            field=models.DateTimeField(auto_now=True, verbose_name="수정시각"),
         ),
         migrations.AlterField(
-            model_name='worldcup',
-            name='media_type',
-            field=models.CharField(choices=[('T', 'Text'), ('I', 'Image'), ('G', 'Gif'), ('V', 'Video')], default='I', max_length=1, verbose_name='미디어 타입'),
+            model_name="worldcup",
+            name="media_type",
+            field=models.CharField(
+                choices=[("T", "Text"), ("I", "Image"), ("G", "Gif"), ("V", "Video")],
+                default="I",
+                max_length=1,
+                verbose_name="미디어 타입",
+            ),
         ),
         migrations.AlterField(
-            model_name='worldcup',
-            name='publish_type',
-            field=models.CharField(choices=[('PUBLIC', '공개'), ('PRIVATE', '비공개'), ('PASSWORD', '암호')], default='PRIVATE', max_length=8, verbose_name='배포 방식'),
+            model_name="worldcup",
+            name="publish_type",
+            field=models.CharField(
+                choices=[("PUBLIC", "공개"), ("PRIVATE", "비공개"), ("PASSWORD", "암호")],
+                default="PRIVATE",
+                max_length=8,
+                verbose_name="배포 방식",
+            ),
         ),
     ]

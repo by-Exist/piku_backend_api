@@ -70,5 +70,19 @@ class MediaViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = worldcupapp_models.Comment.objects.all()
     serializer_class = worldcupapp_serializer.CommentSerializer
+    serializer_action_class = {
+        "list": worldcupapp_serializer.CommentListSerializer,
+        "create": worldcupapp_serializer.CommentListSerializer,
+    }
+
+    def get_queryset(self):
+        worldcup_pk = self.kwargs["worldcup_pk"]
+        worldcup = worldcupapp_models.Worldcup.objects.get(pk=worldcup_pk)
+        return worldcupapp_models.Comment.objects.filter(worldcup=worldcup)
+
+    def get_serializer_class(self):
+        serializer_cls = self.serializer_action_class.get(self.action, None)
+        if serializer_cls:
+            return serializer_cls
+        return self.serializer_class
