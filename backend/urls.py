@@ -16,9 +16,9 @@ router.register("accounts", accountapp_views.UserViewSet)
 router.register("profile", accountapp_views.ProfileViewSet)
 router.register("worldcups", worldcupapp_views.WorldcupViewSet)
 worldcup_router = routers.NestedDefaultRouter(router, "worldcups", lookup="worldcup")
-worldcup_router.register("medias", worldcupapp_views.MediaViewSet, basename="medias")
+worldcup_router.register("medias", worldcupapp_views.MediaViewSet, basename="media")
 worldcup_router.register(
-    "comments", worldcupapp_views.CommentViewSet, basename="comments"
+    "comments", worldcupapp_views.CommentViewSet, basename="comment"
 )
 router.register("reports", reportapp_views.ReportViewSet)
 
