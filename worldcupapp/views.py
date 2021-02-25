@@ -1,46 +1,72 @@
-from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from worldcupapp import models as worldcupapp_models
 from worldcupapp import serializers as worldcupapp_serializer
+import copy
 
 
 class WorldcupViewSet(viewsets.ModelViewSet):
     queryset = worldcupapp_models.Worldcup.objects.all()
     serializer_class = worldcupapp_serializer.WorldcupSerializer
+    serializer_action_class = {
+        "list": worldcupapp_serializer.WorldcupListSerializer,
+        "create": worldcupapp_serializer.WorldcupListSerializer,
+    }
+
+    def get_serializer_class(self):
+        serializer_cls = self.serializer_action_class.get(self.action, None)
+        if serializer_cls:
+            return serializer_cls
+        return self.serializer_class
 
 
 class MediaViewSet(viewsets.ModelViewSet):
+
+    media_models = {
+        "T": worldcupapp_models.TextMedia,
+        "I": worldcupapp_models.ImageMedia,
+        "G": worldcupapp_models.GifMedia,
+        "V": worldcupapp_models.VideoMedia,
+    }
+    serializer_class = {
+        "T": worldcupapp_serializer.TextMediaSerializer,
+        "I": worldcupapp_serializer.ImageMediaSerializer,
+        "G": worldcupapp_serializer.GifMediaSerializer,
+        "V": worldcupapp_serializer.VideoMediaSerializer,
+    }
+    serializer_action_class = {
+        "T": {
+            "list": worldcupapp_serializer.TextMediaListSerializer,
+            "create": worldcupapp_serializer.TextMediaListSerializer,
+        },
+        "I": {
+            "list": worldcupapp_serializer.ImageMediaListSerializer,
+            "create": worldcupapp_serializer.ImageMediaListSerializer,
+        },
+        "G": {
+            "list": worldcupapp_serializer.GifMediaListSerializer,
+            "create": worldcupapp_serializer.GifMediaListSerializer,
+        },
+        "V": {
+            "list": worldcupapp_serializer.VideoMediaListSerializer,
+            "create": worldcupapp_serializer.VideoMediaListSerializer,
+        },
+    }
+
     def get_queryset(self):
-        try:
-            worldcup = get_object_or_404(
-                worldcupapp_models.Worldcup, pk=self.kwargs["worldcup_pk"]
-            )
-        except KeyError:
-            return worldcupapp_models.BaseMedia
-        media_models = {
-            "T": worldcupapp_models.TextMedia,
-            "I": worldcupapp_models.ImageMedia,
-            "G": worldcupapp_models.GifMedia,
-            "V": worldcupapp_models.VideoMedia,
-        }
-        MediaModel = media_models[worldcup.media_type]
-        return MediaModel.objects.all()
+        worldcup_pk = self.kwargs["worldcup_pk"]
+        worldcup = worldcupapp_models.Worldcup.objects.get(pk=worldcup_pk)
+        media_model_cls = self.media_models[worldcup.media_type]
+        return media_model_cls.objects.filter(worldcup=worldcup)
 
     def get_serializer_class(self):
-        try:
-            worldcup = worldcupapp_models.Worldcup.objects.get(
-                self.kwargs["worldcup_pk"]
-            )
-        except KeyError:
-            return worldcupapp_serializer.MediaSerializer
-        media_serializers = {
-            "T": worldcupapp_serializer.TextMediaSerializer,
-            "I": worldcupapp_serializer.ImageMediaSerializer,
-            "G": worldcupapp_serializer.GifMediaSerializer,
-            "V": worldcupapp_serializer.VideoMediaSerializer,
-        }
-        MediaSerializer = media_serializers[worldcup.media_type]
-        return MediaSerializer
+        worldcup_pk = self.kwargs["worldcup_pk"]
+        worldcup = worldcupapp_models.Worldcup.objects.get(pk=worldcup_pk)
+        serializer_cls = self.serializer_action_class[worldcup.media_type].get(
+            self.action, None
+        )
+        if serializer_cls:
+            return serializer_cls
+        return self.serializer_class[worldcup.media_type]
 
 
 class CommentViewSet(viewsets.ModelViewSet):
