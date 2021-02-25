@@ -119,6 +119,8 @@ class Comment(models.Model):
         BaseMedia, null=True, blank=True, on_delete=models.CASCADE, verbose_name="미디어"
     )
     comment = models.CharField("댓글 내용", max_length=511)
+    created_at = models.DateTimeField("작성시각", auto_now_add=True)
+    updated_at = models.DateTimeField("수정시각", auto_now=True)
 
     def get_absolute_url(self):
         return reverse("comment-detail", args=[self.id])
