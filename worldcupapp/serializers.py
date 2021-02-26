@@ -76,7 +76,7 @@ class WorldcupListSerializer(serializers.HyperlinkedModelSerializer):
 # Media Serializer
 class MediaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = None
+        model = worldcupapp_models.BaseMedia
         fields = (
             "id",
             "title",
@@ -91,7 +91,7 @@ class MediaListSerializer(MediaSerializer):
     url = serializers.SerializerMethodField(method_name="get_media_url")
 
     class Meta:
-        model = None
+        model = worldcupapp_models.BaseMedia
         fields = (
             "id",
             "url",
