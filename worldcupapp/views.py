@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from worldcupapp import models as worldcupapp_models
 from worldcupapp import serializers as worldcupapp_serializer
-import copy
+from django.shortcuts import get_object_or_404
 
 
 class WorldcupViewSet(viewsets.ModelViewSet):
@@ -56,7 +56,7 @@ class MediaViewSet(viewsets.ModelViewSet):
         worldcup_pk = self.kwargs.get("worldcup_pk")
         if not worldcup_pk:
             return worldcupapp_models.BaseMedia.objects.none()
-        worldcup = worldcupapp_models.Worldcup.objects.get(pk=worldcup_pk)
+        worldcup = get_object_or_404(worldcupapp_models.Worldcup, pk=worldcup_pk)
         media_model_cls = self.media_models[worldcup.media_type]
         return media_model_cls.objects.filter(worldcup=worldcup)
 
@@ -64,7 +64,10 @@ class MediaViewSet(viewsets.ModelViewSet):
         worldcup_pk = self.kwargs.get("worldcup_pk", None)
         if not worldcup_pk:
             return worldcupapp_serializer.MediaSerializer
-        worldcup = worldcupapp_models.Worldcup.objects.get(pk=worldcup_pk)
+        try:
+            worldcup = worldcupapp_models.Worldcup.objects.get(pk=worldcup_pk)
+        except worldcupapp_models.Worldcup.DoesNotExist:
+            return worldcupapp_serializer.MediaSerializer
         serializer_cls = self.serializer_action_class[worldcup.media_type].get(
             self.action, None
         )
@@ -84,7 +87,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         worldcup_pk = self.kwargs.get("worldcup_pk", None)
         if not worldcup_pk:
             return worldcupapp_models.Comment.objects.none()
-        worldcup = worldcupapp_models.Worldcup.objects.get(pk=worldcup_pk)
+        worldcup = get_object_or_404(worldcupapp_models.Worldcup, pk=worldcup_pk)
         return worldcupapp_models.Comment.objects.filter(worldcup=worldcup)
 
     def get_serializer_class(self):
