@@ -64,3 +64,26 @@ class UserListSerializer(serializers.HyperlinkedModelSerializer):
     def create(self, validated_data):
         user = self.Meta.model.objects.create_user(**validated_data)
         return user
+
+
+# Token Serializer
+# https://github.com/axnsan12/drf-yasg/issues/407
+class TokenObtainPairResponseSerializer(serializers.Serializer):
+    access = serializers.CharField()
+    refresh = serializers.CharField()
+
+    def create(self, validated_data):
+        raise NotImplementedError()
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError()
+
+
+class TokenRefreshResponseSerializer(serializers.Serializer):
+    access = serializers.CharField()
+
+    def create(self, validated_data):
+        raise NotImplementedError()
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError()
