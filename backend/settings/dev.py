@@ -1,5 +1,6 @@
 from .common import *
 import environ
+import socket
 
 LOCAL_ENV_PATH = "backend/settings/local.env"
 USE_GITHUB_WORKFLOW_ENV = os.environ.get("GITHUB_WORKFLOW", False)
@@ -18,6 +19,16 @@ else:
     with open(BASE_DIR / LOCAL_ENV_PATH) as env_file:
         environ.Env.read_env(env_file)
 
+INSTALLED_APPS += [
+    "debug_toolbar",
+    "django_extensions",
+]
+
+MIDDLEWARE = [
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
+    *MIDDLEWARE,
+]
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DJANGO_DEBUG")
 
@@ -32,3 +43,7 @@ DATABASES = {
     # "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}
     "default": env.db("DJANGO_DATABASE_URL")
 }
+
+# INTERNAL_IPS - Debug Toolbar need value with Docker
+# https://stackoverflow.com/questions/26898597/django-debug-toolbar-and-docker
+INTERNAL_IPS = [socket.gethostbyname(socket.gethostname())[:-1] + "1"]

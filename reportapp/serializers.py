@@ -5,7 +5,7 @@ from worldcupapp import models as worldcupapp_models
 
 
 class TargetUrlMethodMixin:
-    def get_target_url(self, obj):
+    def get_target_url(self, obj) -> str:
         MODELS = {
             "User": accountapp_models.CustomUser,
             "Worldcup": worldcupapp_models.Worldcup,
