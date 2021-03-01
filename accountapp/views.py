@@ -1,9 +1,8 @@
-from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_text
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, mixins
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework_simplejwt import views as simplejwt_views
@@ -13,7 +12,13 @@ from accountapp import serializers as accountapp_serializers
 from accountapp.tokens import account_activation_token
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = accountapp_models.CustomUser.objects.all()
     serializer_class = accountapp_serializers.UserSerializer
     serializer_action_class = {
