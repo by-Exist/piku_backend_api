@@ -47,3 +47,7 @@ DATABASES = {
 # INTERNAL_IPS - Debug Toolbar need value with Docker
 # https://stackoverflow.com/questions/26898597/django-debug-toolbar-and-docker
 INTERNAL_IPS = [socket.gethostbyname(socket.gethostname())[:-1] + "1"]
+
+# LOCAL EMAIL - https://docs.djangoproject.com/en/3.1/topics/email/#file-backend
+EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+EMAIL_FILE_PATH = BASE_DIR / PROJECT_NAME / "_email"

@@ -10,13 +10,13 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = accountapp_models.Profile
-        fields = ("id", "nickname", "avatar", "email", "user")
+        fields = ("id", "nickname", "user", "avatar", "email")
 
 
 class ProfileListSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = accountapp_models.Profile
-        fields = ("id", "url", "nickname", "avatar", "email", "user")
+        fields = ("id", "url", "user", "nickname", "avatar", "email")
         extra_kwargs = {
             "user": {"read_only": True},
         }
@@ -47,23 +47,48 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
-class UserListSerializer(serializers.HyperlinkedModelSerializer):
+class UserListSerializer(serializers.ModelSerializer):
 
-    profile = serializers.HyperlinkedRelatedField(
-        view_name="profile-detail", read_only=True
-    )
+    nickname = serializers.CharField(write_only=True)
+    email = serializers.EmailField(write_only=True)
+    profile = ProfileListSerializer(read_only=True)
 
     class Meta:
         model = accountapp_models.CustomUser
-        fields = ("id", "url", "profile", "username", "password", "date_joined")
+        fields = (
+            "id",
+            "url",
+            "profile",
+            "username",
+            "password",
+            "nickname",
+            "email",
+            "is_active",
+            "date_joined",
+        )
         extra_kwargs = {
             "password": {"write_only": True},
             "date_joined": {"read_only": True},
+            "is_active": {"read_only": True},
         }
 
     def create(self, validated_data):
-        user = self.Meta.model.objects.create_user(**validated_data)
+        email = validated_data.pop("email")
+        nickname = validated_data.pop("nickname")
+        user = accountapp_models.CustomUser.objects.create_user(
+            **validated_data, is_active=False
+        )
+        accountapp_models.Profile.objects.create(
+            user=user, nickname=nickname, email=email
+        )
         return user
+
+
+class PasswordChangeSerializer(serializers.Serializer):
+
+    old_password = serializers.CharField()
+    new_password = serializers.CharField()
+    repeat_new_password = serializers.CharField()
 
 
 # Token Serializer
