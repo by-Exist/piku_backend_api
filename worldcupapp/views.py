@@ -1,10 +1,18 @@
-from rest_framework import viewsets
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets, mixins
 from worldcupapp import models as worldcupapp_models
 from worldcupapp import serializers as worldcupapp_serializer
-from django.shortcuts import get_object_or_404
+from backend import mixins as backend_mixins
 
 
-class WorldcupViewSet(viewsets.ModelViewSet):
+class WorldcupViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    backend_mixins.PatchOnlyMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = worldcupapp_models.Worldcup.objects.all()
     serializer_class = worldcupapp_serializer.WorldcupSerializer
     serializer_action_class = {
@@ -19,7 +27,13 @@ class WorldcupViewSet(viewsets.ModelViewSet):
         return self.serializer_class
 
 
-class MediaViewSet(viewsets.ModelViewSet):
+class MediaViewSet(
+    mixins.CreateModelMixin,
+    backend_mixins.PatchOnlyMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
 
     media_models = {
         "T": worldcupapp_models.TextMedia,
@@ -52,6 +66,8 @@ class MediaViewSet(viewsets.ModelViewSet):
         },
     }
 
+    # TODO: action - score-board [get], queryset anotate 기능 활용
+
     def get_queryset(self):
         worldcup_pk = self.kwargs.get("worldcup_pk")
         if not worldcup_pk:
@@ -76,7 +92,13 @@ class MediaViewSet(viewsets.ModelViewSet):
         return self.serializer_class[worldcup.media_type]
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(
+    mixins.CreateModelMixin,
+    backend_mixins.PatchOnlyMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     serializer_class = worldcupapp_serializer.CommentSerializer
     serializer_action_class = {
         "list": worldcupapp_serializer.CommentListSerializer,

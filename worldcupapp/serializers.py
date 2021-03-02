@@ -4,7 +4,7 @@ from worldcupapp import models as worldcupapp_models
 
 
 # Worldcup Serializer
-class WorldcupSerializer(serializers.ModelSerializer):
+class WorldcupSerializer(serializers.HyperlinkedModelSerializer):
 
     media_list = serializers.SerializerMethodField(
         method_name="get_media_list_url", read_only=True
@@ -16,6 +16,7 @@ class WorldcupSerializer(serializers.ModelSerializer):
     class Meta:
         model = worldcupapp_models.Worldcup
         fields = (
+            "id",
             "title",
             "subtitle",
             "media_type",
@@ -58,13 +59,12 @@ class WorldcupListSerializer(serializers.HyperlinkedModelSerializer):
             "subtitle",
             "media_type",
             "publish_type",
-            # "password",
             "play_count",
             "creator",
         )
         extra_kwargs = {
             "creator": {"read_only": True},
-            "password": {"write_only": True},
+            "media_type": {"required": True},
             "publish_type": {"read_only": True},
         }
 
@@ -80,9 +80,9 @@ class MediaSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "title",
+            "media",
             "win_count",
             "choice_count",
-            "media",
         )
 
 
@@ -96,9 +96,9 @@ class MediaListSerializer(MediaSerializer):
             "id",
             "url",
             "title",
+            "media",
             "win_count",
             "choice_count",
-            "media",
         )
 
     def create(self, validated_data):
@@ -174,11 +174,6 @@ class CommentSerializer(serializers.HyperlinkedModelSerializer):
             "worldcup": {"read_only": True},
         }
 
-    def get_url(self, obj) -> str:
-        rel_url = reverse(viewname="comment-detail", args=(obj.worldcup.pk, obj.pk))
-        request = self.context["request"]
-        return request.build_absolute_uri(rel_url)
-
     def get_media_url(self, obj) -> str:
         if obj.media == None:
             return None
@@ -187,7 +182,7 @@ class CommentSerializer(serializers.HyperlinkedModelSerializer):
         return request.build_absolute_uri(rel_url)
 
 
-class CommentListSerializer(CommentSerializer):
+class CommentListSerializer(serializers.HyperlinkedModelSerializer):
 
     media_id = serializers.IntegerField(write_only=True, allow_null=True)
     url = serializers.SerializerMethodField(method_name="get_url")
@@ -210,6 +205,14 @@ class CommentListSerializer(CommentSerializer):
             "writer": {"read_only": True},
             "worldcup": {"read_only": True},
         }
+
+    def get_url(self, obj):
+        return self.context["request"].build_absolute_uri(obj.get_absolute_url())
+
+    def get_media_url(self, obj) -> str:
+        if obj.media == None:
+            return None
+        return self.context["request"].build_absolute_uri(obj.media.get_absolute_url())
 
     def create(self, validated_data):
         user = self.context["request"].user
