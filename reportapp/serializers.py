@@ -12,13 +12,16 @@ class TargetUrlMethodMixin:
             "Media": worldcupapp_models.BaseMedia,
             "Comment": worldcupapp_models.Comment,
         }
-        target_obj = MODELS[obj.target_type].objects.get(pk=obj.target_id)
+        target_type = obj.target_type
+        target_obj = MODELS[target_type].objects.get(pk=obj.target_id)
         request = self.context["view"].request
+        if target_type in ["Media", "Comment"]:
+            worldcup_id = target_obj.worldcup.id
+            return request.build_absolute_uri(target_obj.get_absolute_url(worldcup_id))
         return request.build_absolute_uri(target_obj.get_absolute_url())
 
 
-# TODO: report의 수정이 필요한가? 필요 없는 과정일 것 같은데...
-class ReportSerializer(TargetUrlMethodMixin, serializers.ModelSerializer):
+class ReportSerializer(TargetUrlMethodMixin, serializers.HyperlinkedModelSerializer):
 
     target_url = serializers.SerializerMethodField(method_name="get_target_url")
 
@@ -26,13 +29,13 @@ class ReportSerializer(TargetUrlMethodMixin, serializers.ModelSerializer):
         model = reportapp_models.Report
         fields = (
             "id",
-            "target_url",
+            "reporter",
+            "created_at",
             "target_type",
-            "target_id",
+            "target_url",
             "reason",
             "report",
             "image",
-            "reporter",
         )
         extra_kwargs = {
             "reporter": {"read_only": True},
@@ -55,18 +58,18 @@ class ReportListSerializer(
         fields = (
             "id",
             "url",
-            "target_url",
+            "reporter",
+            "created_at",
             "target_type",
+            "target_url",
             "target_id",
             "reason",
             "report",
             "image",
-            "reporter",
         )
         extra_kwargs = {
             "reporter": {"read_only": True},
             "target_id": {"write_only": True},
-            "target_type": {"write_only": True},
         }
 
     def create(self, validated_data):

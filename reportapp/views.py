@@ -1,13 +1,20 @@
-from rest_framework import viewsets
+from rest_framework import mixins, viewsets
 from reportapp import models as reportapp_models
 from reportapp import serializers as reportapp_serializers
 
 
-class ReportViewSet(viewsets.ModelViewSet):
+class ReportViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = reportapp_models.Report.objects.all()
     serializer_class = reportapp_serializers.ReportSerializer
     serializer_action_class = {
         "list": reportapp_serializers.ReportListSerializer,
+        "create": reportapp_serializers.ReportListSerializer,
     }
 
     def get_serializer_class(self):
