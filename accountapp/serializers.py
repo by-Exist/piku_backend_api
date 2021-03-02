@@ -10,7 +10,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = accountapp_models.Profile
-        fields = ("id", "nickname", "user", "avatar", "email")
+        fields = ("id", "user", "nickname", "avatar", "email")
 
 
 class ProfileListSerializer(serializers.HyperlinkedModelSerializer):

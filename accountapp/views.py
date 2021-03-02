@@ -3,13 +3,14 @@ from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_text
 from rest_framework import viewsets, status, mixins
-from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework_simplejwt import views as simplejwt_views
 from drf_spectacular.utils import extend_schema
 from accountapp import models as accountapp_models
 from accountapp import serializers as accountapp_serializers
 from accountapp.tokens import account_activation_token
+from backend.mixins import PatchOnlyMixin
 
 
 class UserViewSet(
@@ -45,13 +46,14 @@ class UserViewSet(
         mail_to = serializer.validated_data["email"]
         send_mail(mail_title, mail_body, from_email=mail_from, recipient_list=[mail_to])
 
-    @extend_schema(responses={200: None})
+    @extend_schema(
+        description="""회원가입 시 이메일로 전송되는 링크. user의 is_active를 True로 전환""",
+        responses={200: None},
+    )
     @action(
         detail=False, methods=["get"], url_path="active/(?P<uidb64>.+)/(?P<token>.+)"
     )
     def active(self, request, **kwargs):
-        """회원가입을 완료 후, 이메일로 전송된 링크로 접근하여
-        user의 is_active를 True로 전환하는 엔드포인트"""
         uidb64 = kwargs["uidb64"]
         user_pk = force_text(urlsafe_base64_decode(uidb64))
         token = kwargs["token"]
@@ -69,8 +71,11 @@ class UserViewSet(
             {"error": "유효하지 않은 token으로 접근하였습니다."}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    @extend_schema(responses={200: None})
-    @action(detail=True, methods=["put"])
+    @extend_schema(
+        description="유저가 직접 자기 계정의 패스워드를 변경할 때 사용하는 엔드포인트",
+        responses={204: None},
+    )
+    @action(detail=True, methods=["patch"])
     def password(self, request, pk=None):
         user = self.get_object()
         serializer = self.get_serializer_class()(data=request.data)
@@ -81,7 +86,10 @@ class UserViewSet(
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ProfileViewSet(viewsets.ModelViewSet):
+class ProfileViewSet(
+    mixins.RetrieveModelMixin, PatchOnlyMixin, viewsets.GenericViewSet
+):
+
     queryset = accountapp_models.Profile.objects.all()
     serializer_class = accountapp_serializers.ProfileSerializer
     serializer_action_class = {
@@ -94,6 +102,9 @@ class ProfileViewSet(viewsets.ModelViewSet):
         if serializer_cls:
             return serializer_cls
         return self.serializer_class
+
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
 
 
 class DecoratedTokenObtainPairView(simplejwt_views.TokenObtainPairView):
