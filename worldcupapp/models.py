@@ -57,7 +57,7 @@ class BaseMedia(models.Model):
         "1:1 선택 횟수", blank=True, default=0, editable=False
     )
 
-    def get_absolute_url(self, worldcup_pk):
+    def get_absolute_url(self):
         return reverse("media-detail", args=[self.worldcup.pk, self.id])
 
     class Meta:
@@ -122,5 +122,5 @@ class Comment(models.Model):
     created_at = models.DateTimeField("작성시각", auto_now_add=True)
     updated_at = models.DateTimeField("수정시각", auto_now=True)
 
-    def get_absolute_url(self, worldcup_pk):
+    def get_absolute_url(self):
         return reverse("comment-detail", args=[self.worldcup.pk, self.id])
