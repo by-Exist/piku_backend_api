@@ -28,10 +28,11 @@ class WorldcupViewSet(
 
 
 class MediaViewSet(
+    mixins.ListModelMixin,
     mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
     backend_mixins.PatchOnlyMixin,
     mixins.DestroyModelMixin,
-    mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
 
@@ -91,12 +92,17 @@ class MediaViewSet(
             return serializer_cls
         return self.serializer_class[worldcup.media_type]
 
+    def perform_destroy(self, instance):
+        instance = worldcupapp_models.BaseMedia.objects.get(pk=instance.id)
+        instance.delete()
+
 
 class CommentViewSet(
+    mixins.ListModelMixin,
     mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
     backend_mixins.PatchOnlyMixin,
     mixins.DestroyModelMixin,
-    mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
     serializer_class = worldcupapp_serializer.CommentSerializer
