@@ -1,5 +1,5 @@
 from django.db import models
-from accountapp import models as accountapp_models
+from django.contrib.auth import get_user_model
 
 
 class Report(models.Model):
@@ -17,7 +17,7 @@ class Report(models.Model):
         OTHER = "Other", "기타"
 
     reporter = models.ForeignKey(
-        accountapp_models.CustomUser,
+        get_user_model(),
         null=True,
         blank=True,
         on_delete=models.SET_NULL,

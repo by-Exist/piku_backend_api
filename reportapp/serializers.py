@@ -1,13 +1,13 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from reportapp import models as reportapp_models
-from accountapp import models as accountapp_models
 from worldcupapp import models as worldcupapp_models
 
 
 class TargetUrlMethodMixin:
     def get_target_url(self, obj) -> str:
         MODELS = {
-            "User": accountapp_models.CustomUser,
+            "User": get_user_model(),
             "Worldcup": worldcupapp_models.Worldcup,
             "Media": worldcupapp_models.BaseMedia,
             "Comment": worldcupapp_models.Comment,
@@ -15,9 +15,6 @@ class TargetUrlMethodMixin:
         target_type = obj.target_type
         target_obj = MODELS[target_type].objects.get(pk=obj.target_id)
         request = self.context["view"].request
-        if target_type in ["Media", "Comment"]:
-            worldcup_id = target_obj.worldcup.id
-            return request.build_absolute_uri(target_obj.get_absolute_url(worldcup_id))
         return request.build_absolute_uri(target_obj.get_absolute_url())
 
 

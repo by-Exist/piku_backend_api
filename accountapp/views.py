@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -20,7 +21,7 @@ class UserViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
-    queryset = accountapp_models.CustomUser.objects.all()
+    queryset = get_user_model().objects.all()
     serializer_class = accountapp_serializers.UserSerializer
     serializer_action_class = {
         "list": accountapp_serializers.UserListSerializer,
@@ -58,8 +59,8 @@ class UserViewSet(
         user_pk = force_text(urlsafe_base64_decode(uidb64))
         token = kwargs["token"]
         try:
-            user = accountapp_models.CustomUser.objects.get(pk=user_pk)
-        except accountapp_models.CustomUser.DoesNotExist:
+            user = get_user_model().objects.get(pk=user_pk)
+        except get_user_model().DoesNotExist:
             return Response(
                 {"error": "해당 유저를 찾을 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST
             )

@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from accountapp import models as accountapp_models
 
@@ -31,7 +32,7 @@ class UserSerializer(serializers.ModelSerializer):
     profile = ProfileListSerializer(read_only=True)
 
     class Meta:
-        model = accountapp_models.CustomUser
+        model = get_user_model()
         fields = ("id", "username", "password", "profile", "last_login", "date_joined")
         extra_kwargs = {
             "username": {"read_only": True},
@@ -54,7 +55,7 @@ class UserListSerializer(serializers.ModelSerializer):
     profile = ProfileListSerializer(read_only=True)
 
     class Meta:
-        model = accountapp_models.CustomUser
+        model = get_user_model()
         fields = (
             "id",
             "url",
@@ -75,9 +76,7 @@ class UserListSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         email = validated_data.pop("email")
         nickname = validated_data.pop("nickname")
-        user = accountapp_models.CustomUser.objects.create_user(
-            **validated_data, is_active=False
-        )
+        user = get_user_model().objects.create_user(**validated_data, is_active=False)
         accountapp_models.Profile.objects.create(
             user=user, nickname=nickname, email=email
         )
