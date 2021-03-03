@@ -93,19 +93,6 @@ class ProfileViewSet(
 
     queryset = accountapp_models.Profile.objects.all()
     serializer_class = accountapp_serializers.ProfileSerializer
-    serializer_action_class = {
-        "list": accountapp_serializers.ProfileListSerializer,
-        "create": accountapp_serializers.ProfileListSerializer,
-    }
-
-    def get_serializer_class(self):
-        serializer_cls = self.serializer_action_class.get(self.action, None)
-        if serializer_cls:
-            return serializer_cls
-        return self.serializer_class
-
-    def partial_update(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
 
 
 class DecoratedTokenObtainPairView(simplejwt_views.TokenObtainPairView):

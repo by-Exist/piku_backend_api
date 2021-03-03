@@ -4,27 +4,15 @@ from accountapp import models as accountapp_models
 
 # ProfileSerializer
 class ProfileSerializer(serializers.ModelSerializer):
-
-    user = serializers.HyperlinkedRelatedField(
-        view_name="customuser-detail", read_only=True
-    )
-
     class Meta:
         model = accountapp_models.Profile
-        fields = ("id", "user", "nickname", "avatar", "email")
+        fields = ("nickname", "avatar", "email")
 
 
 class ProfileListSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = accountapp_models.Profile
-        fields = ("id", "url", "user", "nickname", "avatar", "email")
-        extra_kwargs = {
-            "user": {"read_only": True},
-        }
-
-    def create(self, validated_data):
-        validated_data |= {"user": self.context["view"].request.user}
-        return super().create(validated_data)
+        fields = ("url", "nickname", "avatar", "email")
 
 
 # UserSerializer
@@ -33,7 +21,15 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ("id", "username", "password", "profile", "last_login", "date_joined")
+        fields = (
+            "id",
+            "username",
+            "password",
+            "profile",
+            "is_active",
+            "last_login",
+            "date_joined",
+        )
         extra_kwargs = {
             "username": {"read_only": True},
             "password": {"write_only": True},
@@ -50,22 +46,21 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserListSerializer(serializers.ModelSerializer):
 
+    profile = ProfileListSerializer(read_only=True)
+
     nickname = serializers.CharField(write_only=True)
     email = serializers.EmailField(write_only=True)
-    profile = ProfileListSerializer(read_only=True)
 
     class Meta:
         model = get_user_model()
         fields = (
             "id",
             "url",
-            "profile",
             "username",
+            "profile",
             "password",
             "nickname",
             "email",
-            "is_active",
-            "date_joined",
         )
         extra_kwargs = {
             "password": {"write_only": True},
