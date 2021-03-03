@@ -128,8 +128,6 @@ class MediaListSerializer(MediaSerializer):
             "url",
             "title",
             "media",
-            "win_count",
-            "choice_count",
         )
 
     def get_media_url(self, obj) -> str:
