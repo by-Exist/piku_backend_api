@@ -1,15 +1,19 @@
 from django.urls import reverse
 from rest_framework import serializers
+from accountapp.serializers import UserListSerializer
 from worldcupapp import models as worldcupapp_models
+from worldcupapp import views as worldcupapp_views
 
 
 # Worldcup Serializer
 class WorldcupSerializer(serializers.HyperlinkedModelSerializer):
 
-    media_list = serializers.SerializerMethodField(
+    creator = UserListSerializer(read_only=True)
+    thumbnail = serializers.SerializerMethodField("get_thumbnail")
+    media_list_url = serializers.SerializerMethodField(
         method_name="get_media_list_url", read_only=True
     )
-    comment_list = serializers.SerializerMethodField(
+    comment_list_url = serializers.SerializerMethodField(
         method_name="get_comment_list_url", read_only=True
     )
 
@@ -17,18 +21,20 @@ class WorldcupSerializer(serializers.HyperlinkedModelSerializer):
         model = worldcupapp_models.Worldcup
         fields = (
             "id",
+            "thumbnail",
             "title",
             "subtitle",
             "media_type",
-            "media_list",
-            "comment_list",
             "publish_type",
             "password",
             "play_count",
+            "created_at",
+            "updated_at",
             "creator",
+            "media_list_url",
+            "comment_list_url",
         )
         extra_kwargs = {
-            "media_type": {"read_only": True},
             "creator": {"read_only": True},
             "password": {"write_only": True},
         }
@@ -45,21 +51,34 @@ class WorldcupSerializer(serializers.HyperlinkedModelSerializer):
         url_abs = request.build_absolute_uri(url_ref)
         return url_abs
 
-    def update(self, instance, validated_data):
-        return super().update(instance, validated_data)
+    def get_thumbnail(self, obj):
+        media_model = worldcupapp_views.MediaViewSet.media_models[obj.media_type]
+        thumbnail_media_qs = media_model.objects.filter(worldcup=obj).all()[:2]
+        if obj.media_type in ("T", "V"):
+            return [media.media for media in thumbnail_media_qs]
+        else:
+            request = self.context["request"]
+            return [
+                request.build_absolute_uri(media.media.url)
+                for media in thumbnail_media_qs
+            ]
 
 
 class WorldcupListSerializer(serializers.HyperlinkedModelSerializer):
+
+    creator = UserListSerializer(read_only=True)
+    thumbnail = serializers.SerializerMethodField("get_thumbnail")
+
     class Meta:
         model = worldcupapp_models.Worldcup
         fields = (
             "id",
             "url",
+            "thumbnail",
             "title",
             "subtitle",
             "media_type",
             "publish_type",
-            "play_count",
             "creator",
         )
         extra_kwargs = {
@@ -67,6 +86,18 @@ class WorldcupListSerializer(serializers.HyperlinkedModelSerializer):
             "media_type": {"required": True},
             "publish_type": {"read_only": True},
         }
+
+    def get_thumbnail(self, obj):
+        media_model = worldcupapp_views.MediaViewSet.media_models[obj.media_type]
+        thumbnail_media_qs = media_model.objects.filter(worldcup=obj).all()[:2]
+        if obj.media_type in ("T", "V"):
+            return [media.media for media in thumbnail_media_qs]
+        else:
+            request = self.context["request"]
+            return [
+                request.build_absolute_uri(media.media.url)
+                for media in thumbnail_media_qs
+            ]
 
     def create(self, validated_data):
         validated_data |= {"creator": self.context["view"].request.user}
@@ -101,16 +132,16 @@ class MediaListSerializer(MediaSerializer):
             "choice_count",
         )
 
+    def get_media_url(self, obj) -> str:
+        request = self.context["request"]
+        rel_url = reverse("media-detail", args=(obj.worldcup.pk, obj.pk))
+        return request.build_absolute_uri(rel_url)
+
     def create(self, validated_data):
         worldcup_pk = self.context["view"].kwargs["worldcup_pk"]
         worldcup = worldcupapp_models.Worldcup.objects.get(pk=worldcup_pk)
         validated_data |= {"worldcup": worldcup}
         return super().create(validated_data)
-
-    def get_media_url(self, obj) -> str:
-        request = self.context["request"]
-        rel_url = reverse("media-detail", args=(obj.worldcup.pk, obj.pk))
-        return request.build_absolute_uri(rel_url)
 
 
 class TextMediaSerializer(MediaSerializer):

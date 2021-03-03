@@ -47,7 +47,9 @@ class Worldcup(models.Model):
 
 # 테이블을 만드는 용도로 사용되며, 직접적으로 활용되지는 않음
 class BaseMedia(models.Model):
-    worldcup = models.ForeignKey(Worldcup, on_delete=models.CASCADE, verbose_name="월드컵")
+    worldcup = models.ForeignKey(
+        Worldcup, on_delete=models.CASCADE, verbose_name="월드컵", related_name="media_set"
+    )
     title = models.CharField("제목", max_length=31)
     media = models.CharField("미디어", max_length=511)
     win_count = models.PositiveIntegerField(
@@ -97,7 +99,7 @@ class ImageMedia(AbstractMedia):
 
 
 class GifMedia(AbstractMedia):
-    media = models.ImageField("Gif 미디어", upload_to="worldcupapp/imagemedia/%Y/%m/%d/%H")
+    media = models.ImageField("Gif 미디어", upload_to="worldcupapp/gifmedia/%Y/%m/%d/%H")
 
     class Meta:
         db_table = "Medias"
@@ -105,7 +107,7 @@ class GifMedia(AbstractMedia):
 
 
 class VideoMedia(AbstractMedia):
-    media = models.CharField("텍스트 미디어", max_length=255)
+    media = models.CharField("Video 미디어", max_length=255)
 
     class Meta:
         db_table = "Medias"
