@@ -3,7 +3,7 @@ from rest_framework import viewsets, mixins
 from worldcupapp import models as worldcupapp_models
 from worldcupapp import serializers as worldcupapp_serializer
 from backend import mixins as backend_mixins
-from .policys import WorldcupViewSetAccessPolicy
+from .policys import WorldcupViewSetAccessPolicy, MediaViewSetAccessPolicy
 
 
 class WorldcupViewSet(
@@ -68,6 +68,8 @@ class MediaViewSet(
             "create": worldcupapp_serializer.VideoMediaListSerializer,
         },
     }
+
+    permission_classes = [MediaViewSetAccessPolicy]
 
     # TODO: action - score-board [get], queryset anotate 기능 활용
 
