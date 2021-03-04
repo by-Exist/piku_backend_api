@@ -3,6 +3,7 @@ from rest_framework import viewsets, mixins
 from worldcupapp import models as worldcupapp_models
 from worldcupapp import serializers as worldcupapp_serializer
 from backend import mixins as backend_mixins
+from .policys import WorldcupViewSetAccessPolicy
 
 
 class WorldcupViewSet(
@@ -13,6 +14,7 @@ class WorldcupViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
+    permission_classes = [WorldcupViewSetAccessPolicy]
     queryset = worldcupapp_models.Worldcup.objects.all()
     serializer_class = worldcupapp_serializer.WorldcupSerializer
     serializer_action_class = {
