@@ -12,15 +12,18 @@ from accountapp import models as accountapp_models
 from accountapp import serializers as accountapp_serializers
 from accountapp.tokens import account_activation_token
 from backend.mixins import PatchOnlyMixin
+from .policys import UserViewSetAccessPolicy
 
 
 class UserViewSet(
+    mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
-    mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
+
+    permission_classes = [UserViewSetAccessPolicy]
     queryset = get_user_model().objects.all()
     serializer_class = accountapp_serializers.UserSerializer
     serializer_action_class = {
