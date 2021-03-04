@@ -104,7 +104,6 @@ class MediaViewSet(
 class CommentViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
     backend_mixins.PatchOnlyMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,

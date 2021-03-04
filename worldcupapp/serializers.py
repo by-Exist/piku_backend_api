@@ -185,7 +185,8 @@ class VideoMediaListSerializer(MediaListSerializer):
 # Comment Serializer
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
 
-    media = serializers.SerializerMethodField(method_name="get_media_url")
+    writer = UserListSerializer(read_only=True)
+    media = MediaListSerializer(read_only=True)
 
     class Meta:
         model = worldcupapp_models.Comment
@@ -193,7 +194,6 @@ class CommentSerializer(serializers.HyperlinkedModelSerializer):
             "id",
             "comment",
             "writer",
-            "worldcup",
             "media",
             "created_at",
             "updated_at",
@@ -203,19 +203,13 @@ class CommentSerializer(serializers.HyperlinkedModelSerializer):
             "worldcup": {"read_only": True},
         }
 
-    def get_media_url(self, obj) -> str:
-        if obj.media == None:
-            return None
-        rel_url = reverse(viewname="media-detail", args=(obj.worldcup.pk, obj.media.pk))
-        request = self.context["request"]
-        return request.build_absolute_uri(rel_url)
-
 
 class CommentListSerializer(serializers.HyperlinkedModelSerializer):
 
+    url = serializers.SerializerMethodField("get_url")
+    writer = UserListSerializer(read_only=True)
+    media = MediaListSerializer(read_only=True)
     media_id = serializers.IntegerField(write_only=True, allow_null=True)
-    url = serializers.SerializerMethodField(method_name="get_url")
-    media = serializers.SerializerMethodField(method_name="get_media_url")
 
     class Meta:
         model = worldcupapp_models.Comment
@@ -237,11 +231,6 @@ class CommentListSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_url(self, obj):
         return self.context["request"].build_absolute_uri(obj.get_absolute_url())
-
-    def get_media_url(self, obj) -> str:
-        if obj.media == None:
-            return None
-        return self.context["request"].build_absolute_uri(obj.media.get_absolute_url())
 
     def create(self, validated_data):
         user = self.context["request"].user
