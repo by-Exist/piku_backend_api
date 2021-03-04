@@ -18,7 +18,10 @@ worldcup_router.register("medias", worldcupapp_views.MediaViewSet, basename="med
 worldcup_router.register(
     "comments", worldcupapp_views.CommentViewSet, basename="comment"
 )
-router.register("reports", reportapp_views.ReportViewSet)
+router.register("reports/users", reportapp_views.UserReportViewSet)
+router.register("reports/worldcups", reportapp_views.WorldcupReportViewSet)
+router.register("reports/medias", reportapp_views.MediaReportViewSet)
+router.register("reports/comments", reportapp_views.CommentReportViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

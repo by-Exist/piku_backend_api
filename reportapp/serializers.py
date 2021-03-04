@@ -1,74 +1,125 @@
+from worldcupapp.models import BaseMedia, Comment, Worldcup
 from django.contrib.auth import get_user_model
+from reportapp.models import CommentReport, MediaReport, UserReport, WorldcupReport
+from worldcupapp.serializers import (
+    CommentSerializer,
+    MediaSerializer,
+    WorldcupSerializer,
+)
 from rest_framework import serializers
-from reportapp import models as reportapp_models
-from worldcupapp import models as worldcupapp_models
+from accountapp.serializers import UserListSerializer, UserSerializer
 
 
-class TargetUrlMethodMixin:
-    def get_target_url(self, obj) -> str:
-        MODELS = {
-            "User": get_user_model(),
-            "Worldcup": worldcupapp_models.Worldcup,
-            "Media": worldcupapp_models.BaseMedia,
-            "Comment": worldcupapp_models.Comment,
-        }
-        target_type = obj.target_type
-        target_obj = MODELS[target_type].objects.get(pk=obj.target_id)
-        request = self.context["view"].request
-        return request.build_absolute_uri(target_obj.get_absolute_url())
+class AbstractReportSerializer(serializers.HyperlinkedModelSerializer):
 
-
-class ReportSerializer(TargetUrlMethodMixin, serializers.HyperlinkedModelSerializer):
-
-    target_url = serializers.SerializerMethodField(method_name="get_target_url")
+    reporter = UserListSerializer(read_only=True)
 
     class Meta:
-        model = reportapp_models.Report
         fields = (
             "id",
             "reporter",
-            "created_at",
-            "target_type",
-            "target_url",
+            "reported",
             "reason",
-            "report",
+            "body",
+            "created_at",
             "image",
         )
-        extra_kwargs = {
-            "reporter": {"read_only": True},
-            "target_type": {"read_only": True},
-            "target_id": {"read_only": True},
-        }
-
-    def update(self, instance, validated_data):
-        return super().update(instance, validated_data)
 
 
-class ReportListSerializer(
-    TargetUrlMethodMixin, serializers.HyperlinkedModelSerializer
-):
+class AbstractReportListSerializer(serializers.HyperlinkedModelSerializer):
 
-    target_url = serializers.SerializerMethodField(method_name="get_target_url")
+    reporter = UserListSerializer(read_only=True)
 
     class Meta:
-        model = reportapp_models.Report
         fields = (
             "id",
             "url",
             "reporter",
-            "created_at",
-            "target_type",
-            "target_url",
-            "target_id",
+            "reported",
+            "reported_pk",
             "reason",
-            "report",
+            "body",
             "image",
+            "created_at",
         )
-        extra_kwargs = {
-            "reporter": {"read_only": True},
-            "target_id": {"write_only": True},
-        }
 
     def create(self, validated_data):
-        validated_data |= {"reporter": self.context["view"].request.user}
+        reporter = self.context["request"].user
+        if not reporter.is_authenticated:
+            reporter = None
+        reported_pk = validated_data.pop("reported_pk")
+        reported = self.Meta.reported_model.objects.get(pk=reported_pk)
+        validated_data |= {"reporter": reporter, "reported": reported}
         return super().create(validated_data)
+
+
+class UserReportSerializer(AbstractReportSerializer):
+
+    reported = UserSerializer(read_only=True)
+
+    class Meta(AbstractReportSerializer.Meta):
+        model = UserReport
+
+
+class UserReportListSerializer(AbstractReportListSerializer):
+
+    reported = UserSerializer(read_only=True)
+    reported_pk = serializers.IntegerField(write_only=True)
+
+    class Meta(AbstractReportListSerializer.Meta):
+        model = UserReport
+        reported_model = get_user_model()
+
+
+class WorldcupReportSerializer(AbstractReportSerializer):
+
+    reported = WorldcupSerializer(read_only=True)
+
+    class Meta(AbstractReportSerializer.Meta):
+        model = WorldcupReport
+
+
+class WorldcupReportListSerializer(AbstractReportListSerializer):
+
+    reported = WorldcupSerializer(read_only=True)
+    reported_pk = serializers.IntegerField(write_only=True)
+
+    class Meta(AbstractReportListSerializer.Meta):
+        model = WorldcupReport
+        reported_model = Worldcup
+
+
+class MediaReportSerializer(AbstractReportSerializer):
+
+    reported = MediaSerializer(read_only=True)
+
+    class Meta(AbstractReportSerializer.Meta):
+        model = MediaReport
+
+
+class MediaReportListSerializer(AbstractReportListSerializer):
+
+    reported = MediaSerializer(read_only=True)
+    reported_pk = serializers.IntegerField(write_only=True)
+
+    class Meta(AbstractReportListSerializer.Meta):
+        model = MediaReport
+        reported_model = BaseMedia
+
+
+class CommentReportSerializer(AbstractReportSerializer):
+
+    reported = CommentSerializer(read_only=True)
+
+    class Meta(AbstractReportSerializer.Meta):
+        model = CommentReport
+
+
+class CommentReportListSerializer(AbstractReportListSerializer):
+
+    reported = CommentSerializer(read_only=True)
+    reported_pk = serializers.IntegerField(write_only=True)
+
+    class Meta(AbstractReportListSerializer.Meta):
+        model = CommentReport
+        reported_model = Comment
