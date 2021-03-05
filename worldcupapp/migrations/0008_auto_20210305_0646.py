@@ -7,13 +7,21 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('worldcupapp', '0007_comment_anonymous_password'),
+        ("worldcupapp", "0007_comment_anonymous_password"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='comment',
-            name='anonymous_password',
-            field=models.CharField(max_length=15, validators=[django.core.validators.MinLengthValidator(3, '세 글자 이상의 패스워드를 입력해주세요.')], verbose_name='익명 패스워드'),
+            model_name="comment",
+            name="anonymous_password",
+            field=models.CharField(
+                max_length=15,
+                validators=[
+                    django.core.validators.MinLengthValidator(
+                        3, "세 글자 이상의 패스워드를 입력해주세요."
+                    )
+                ],
+                verbose_name="익명 패스워드",
+            ),
         ),
     ]

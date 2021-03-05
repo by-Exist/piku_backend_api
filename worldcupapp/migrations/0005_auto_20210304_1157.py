@@ -9,13 +9,19 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('worldcupapp', '0004_auto_20210303_0808'),
+        ("worldcupapp", "0004_auto_20210303_0808"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='comment',
-            name='writer',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='작성자'),
+            model_name="comment",
+            name="writer",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="작성자",
+            ),
         ),
     ]

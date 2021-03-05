@@ -7,13 +7,21 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('worldcupapp', '0005_auto_20210304_1157'),
+        ("worldcupapp", "0005_auto_20210304_1157"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='comment',
-            name='anonymous_nickname',
-            field=models.CharField(blank=True, default='익명', max_length=13, validators=[django.core.validators.MinLengthValidator(2, '두 글자 이상 입력해주세요.')], verbose_name='익명 닉네임'),
+            model_name="comment",
+            name="anonymous_nickname",
+            field=models.CharField(
+                blank=True,
+                default="익명",
+                max_length=13,
+                validators=[
+                    django.core.validators.MinLengthValidator(2, "두 글자 이상 입력해주세요.")
+                ],
+                verbose_name="익명 닉네임",
+            ),
         ),
     ]
