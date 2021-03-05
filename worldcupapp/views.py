@@ -108,10 +108,16 @@ class CommentViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
-    serializer_class = worldcupapp_serializer.CommentSerializer
+    serializer_class = worldcupapp_serializer.CommentListSerializer
     serializer_action_class = {
-        "list": worldcupapp_serializer.CommentListSerializer,
-        "create": worldcupapp_serializer.CommentListSerializer,
+        "authenticated": {
+            "list": worldcupapp_serializer.CommentListSerializer,
+            "create": worldcupapp_serializer.CommentListSerializer,
+        },
+        "anonymous": {
+            "create": worldcupapp_serializer.AnonymouseCommentCreateSerializer,
+            "partial_update": worldcupapp_serializer.AnonymouseCommentUpdateSerializer,
+        },
     }
 
     def get_queryset(self):
@@ -122,7 +128,8 @@ class CommentViewSet(
         return worldcupapp_models.Comment.objects.filter(worldcup=worldcup)
 
     def get_serializer_class(self):
-        serializer_cls = self.serializer_action_class.get(self.action, None)
-        if serializer_cls:
-            return serializer_cls
+        user = self.request.user
+        user_type = "authenticated" if user.is_authenticated else "anonymous"
+        if self.action in self.serializer_action_class[user_type]:
+            return self.serializer_action_class[user_type][self.action]
         return self.serializer_class
