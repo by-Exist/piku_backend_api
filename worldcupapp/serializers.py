@@ -183,6 +183,18 @@ class VideoMediaListSerializer(MediaListSerializer):
 
 
 # Comment Serializer
+class AuthenticatedUserCommentPasswordSerializer(serializers.Serializer):
+
+    pass
+
+
+class AnonymousUserCommentPasswordSerializer(serializers.Serializer):
+
+    password = serializers.CharField(
+        style={"input_type": "password", "placeholder": "Password"},
+    )
+
+
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
 
     writer = UserListSerializer(read_only=True)

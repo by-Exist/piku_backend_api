@@ -60,3 +60,36 @@ class MediaViewSetAccessPolicy(AccessPolicy):
         worldcup_pk = view.kwargs["worldcup_pk"]
         worldcup = Worldcup.objects.get(pk=worldcup_pk)
         return worldcup.creator == user
+
+
+# list create partial_update destroy
+class CommentViewSetAccessPolicy(AccessPolicy):
+
+    statements = [
+        {
+            "principal": "*",
+            "action": ["<method:options>", "<method:head>"],
+            "effect": "allow",
+        },
+        {
+            "principal": "*",
+            "action": ["list", "create", "check_writer"],
+            "effect": "allow",
+        },
+        {
+            "principal": "authenticated",
+            "action": ["partial_update", "destroy"],
+            "condition": "is_writer",
+            "effect": "allow",
+        },
+        {
+            "principal": "anonymous",
+            "action": ["partial_update", "destroy"],
+            "effect": "allow",
+        },
+    ]
+
+    def is_writer(self, request, view, action) -> bool:
+        user = request.user
+        comment = view.get_object()
+        return comment.writer == user
