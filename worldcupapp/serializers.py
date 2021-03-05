@@ -234,6 +234,8 @@ class CommentListSerializer(serializers.HyperlinkedModelSerializer):
 
     def create(self, validated_data):
         user = self.context["request"].user
+        if not user.is_authenticated:
+            user = None
         worldcup = worldcupapp_models.Worldcup.objects.get(
             pk=self.context["view"].kwargs["worldcup_pk"]
         )
