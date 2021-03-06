@@ -12,7 +12,7 @@ from accountapp import models as accountapp_models
 from accountapp import serializers as accountapp_serializers
 from accountapp.tokens import account_activation_token
 from backend.mixins import PatchOnlyMixin
-from .policys import UserViewSetAccessPolicy
+from .policys import ProfileViewSetPolicy, UserViewSetAccessPolicy
 
 
 class UserViewSet(
@@ -93,7 +93,7 @@ class UserViewSet(
 class ProfileViewSet(
     mixins.RetrieveModelMixin, PatchOnlyMixin, viewsets.GenericViewSet
 ):
-
+    permission_classes = [ProfileViewSetPolicy]
     queryset = accountapp_models.Profile.objects.all()
     serializer_class = accountapp_serializers.ProfileSerializer
 
