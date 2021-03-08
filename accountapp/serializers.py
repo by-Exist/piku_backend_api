@@ -1,17 +1,17 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from accountapp import models as accountapp_models
+from accountapp.models import Profile
 
 # ProfileSerializer
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = accountapp_models.Profile
+        model = Profile
         fields = ("nickname", "avatar", "email")
 
 
 class ProfileListSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = accountapp_models.Profile
+        model = Profile
         fields = ("url", "nickname", "avatar", "email")
 
 
@@ -46,9 +46,15 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserListSerializer(serializers.HyperlinkedModelSerializer):
 
+    profile_obj = Profile()
+
     profile = ProfileListSerializer(read_only=True)
-    nickname = serializers.CharField(write_only=True)
-    email = serializers.EmailField(write_only=True)
+    nickname = serializers.CharField(
+        write_only=True, validators=profile_obj._meta.get_field("nickname").validators
+    )
+    email = serializers.EmailField(
+        write_only=True, validators=profile_obj._meta.get_field("email").validators
+    )
 
     class Meta:
         model = get_user_model()
@@ -72,9 +78,7 @@ class UserListSerializer(serializers.HyperlinkedModelSerializer):
         email = validated_data.pop("email")
         nickname = validated_data.pop("nickname")
         user = get_user_model().objects.create_user(**validated_data, is_active=False)
-        accountapp_models.Profile.objects.create(
-            user=user, nickname=nickname, email=email
-        )
+        Profile.objects.create(user=user, nickname=nickname, email=email)
         return user
 
 
