@@ -1,63 +1,52 @@
-from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
-from drf_spectacular import views as spectacular_views
-from rest_framework_nested import routers
-from accountapp import views as accountapp_views
-from worldcupapp import views as worldcupapp_views
-from reportapp import views as reportapp_views
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView,
+)
 import debug_toolbar
 
-router = routers.DefaultRouter()
-router.register("accounts", accountapp_views.UserViewSet)
-router.register("profile", accountapp_views.ProfileViewSet)
-router.register("worldcups", worldcupapp_views.WorldcupViewSet)
-worldcup_router = routers.NestedDefaultRouter(router, "worldcups", lookup="worldcup")
-worldcup_router.register("medias", worldcupapp_views.MediaViewSet, basename="media")
-worldcup_router.register(
-    "comments", worldcupapp_views.CommentViewSet, basename="comment"
-)
-router.register("reports/users", reportapp_views.UserReportViewSet)
-router.register("reports/worldcups", reportapp_views.WorldcupReportViewSet)
-router.register("reports/medias", reportapp_views.MediaReportViewSet)
-router.register("reports/comments", reportapp_views.CommentReportViewSet)
-
 urlpatterns = [
-    path("", include(router.urls)),
-    path("", include(worldcup_router.urls)),
-    path(
-        "token/",
-        accountapp_views.DecoratedTokenObtainPairView.as_view(),
-        name="token_obtain_pair",
-    ),
-    path(
-        "token/refresh/",
-        accountapp_views.DecoratedTokenRefreshView.as_view(),
-        name="token_refresh",
-    ),
-    path("admin/", admin.site.urls),
-    path("api-auth/", include("rest_framework.urls")),
+    path("", include("accountapp.urls")),
+    path("", include("worldcupapp.urls")),
+    path("", include("reportapp.urls")),
 ]
 
 if settings.DEBUG:
 
-    urlpatterns = [
-        *urlpatterns,
+    static_urlpatterns = [
         *static(settings.STATIC_URL, document_root=settings.STATIC_ROOT),
         *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
-        path(
-            "api/schema/", spectacular_views.SpectacularAPIView.as_view(), name="schema"
-        ),
+    ]
+
+    debug_toolbar_urlpatterns = [
+        path("__debug__/", include(debug_toolbar.urls)),
+    ]
+
+    rest_framework_auth_urlpatterns = [
+        path("api-auth/", include("rest_framework.urls")),
+    ]
+
+    schema_urlpatterns = [
+        path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
         path(
             "api/schema/swagger-ui/",
-            spectacular_views.SpectacularSwaggerView.as_view(url_name="schema"),
+            SpectacularSwaggerView.as_view(url_name="schema"),
             name="swagger-ui",
         ),
         path(
             "api/schema/redoc/",
-            spectacular_views.SpectacularRedocView.as_view(url_name="schema"),
+            SpectacularRedocView.as_view(url_name="schema"),
             name="redoc",
         ),
-        path("__debug__/", include(debug_toolbar.urls)),
+    ]
+
+    urlpatterns = [
+        *urlpatterns,
+        path("", include(schema_urlpatterns)),
+        path("", include(static_urlpatterns)),
+        path("", include(debug_toolbar_urlpatterns)),
+        path("", include(rest_framework_auth_urlpatterns)),
     ]

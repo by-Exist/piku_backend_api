@@ -42,7 +42,7 @@ class UserViewSet(
         user = serializer.save()
         uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
         token = account_activation_token.make_token(user)
-        url_rel = reverse("customuser-active", args=[uidb64, token])
+        url_rel = reverse("account-active", args=[uidb64, token])
         url_abs = self.request.build_absolute_uri(url_rel)
         mail_title = "이메일 인증을 완료해주세요."
         mail_body = f"아래 링크를 클릭하면 회원가입이 완료됩니다.\nLink : {url_abs}"
