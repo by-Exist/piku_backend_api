@@ -44,10 +44,9 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
-class UserListSerializer(serializers.ModelSerializer):
+class UserListSerializer(serializers.HyperlinkedModelSerializer):
 
     profile = ProfileListSerializer(read_only=True)
-
     nickname = serializers.CharField(write_only=True)
     email = serializers.EmailField(write_only=True)
 
@@ -63,7 +62,8 @@ class UserListSerializer(serializers.ModelSerializer):
             "email",
         )
         extra_kwargs = {
-            "password": {"write_only": True},
+            "url": {"view_name": "account-detail"},
+            "password": {"write_only": True, "style": {"input_type": "password"}},
             "date_joined": {"read_only": True},
             "is_active": {"read_only": True},
         }
