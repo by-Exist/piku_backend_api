@@ -1,87 +1,78 @@
 from rest_framework import mixins, viewsets
 from reportapp import models as reportapp_models
-from reportapp import serializers as reportapp_serializers
+from reportapp.policys import ReportViewSetAccessPolicy
+from reportapp.serializers import (
+    CommentReportListSerializer,
+    CommentReportSerializer,
+    MediaReportListSerializer,
+    MediaReportSerializer,
+    UserReportListSerializer,
+    UserReportSerializer,
+    WorldcupReportListSerializer,
+    WorldcupReportSerializer,
+)
 
 
-class UserReportViewSet(
+class ReportViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
+    """
+    모든 Report에서 공통적으로 사용되는 메서드와 상속 관계를 위해 작성된 뷰셋
+    상속을 통해 활용한다.
+    """
+
+    permission_classes = [ReportViewSetAccessPolicy]
+
+    def get_serializer_class(self):
+        serializer_cls = self.serializer_action_class.get(self.action, None)
+        if serializer_cls:
+            return serializer_cls
+        return self.serializer_class
+
+
+class UserReportViewSet(ReportViewSet):
+    """Report - User"""
+
     queryset = reportapp_models.UserReport.objects.all()
-    serializer_class = reportapp_serializers.UserReportSerializer
+    serializer_class = UserReportSerializer
     serializer_action_class = {
-        "list": reportapp_serializers.UserReportListSerializer,
-        "create": reportapp_serializers.UserReportListSerializer,
+        "list": UserReportListSerializer,
+        "create": UserReportListSerializer,
     }
 
-    def get_serializer_class(self):
-        serializer_cls = self.serializer_action_class.get(self.action, None)
-        if serializer_cls:
-            return serializer_cls
-        return self.serializer_class
 
+class WorldcupReportViewSet(ReportViewSet):
+    """Report - Worldcup"""
 
-class WorldcupReportViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
-):
     queryset = reportapp_models.WorldcupReport.objects.all()
-    serializer_class = reportapp_serializers.WorldcupReportSerializer
+    serializer_class = WorldcupReportSerializer
     serializer_action_class = {
-        "list": reportapp_serializers.WorldcupReportListSerializer,
-        "create": reportapp_serializers.WorldcupReportListSerializer,
+        "list": WorldcupReportListSerializer,
+        "create": WorldcupReportListSerializer,
     }
 
-    def get_serializer_class(self):
-        serializer_cls = self.serializer_action_class.get(self.action, None)
-        if serializer_cls:
-            return serializer_cls
-        return self.serializer_class
 
+class MediaReportViewSet(ReportViewSet):
+    """Report - Media"""
 
-class MediaReportViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
-):
     queryset = reportapp_models.MediaReport.objects.all()
-    serializer_class = reportapp_serializers.MediaReportSerializer
+    serializer_class = MediaReportSerializer
     serializer_action_class = {
-        "list": reportapp_serializers.MediaReportListSerializer,
-        "create": reportapp_serializers.MediaReportListSerializer,
+        "list": MediaReportListSerializer,
+        "create": MediaReportListSerializer,
     }
 
-    def get_serializer_class(self):
-        serializer_cls = self.serializer_action_class.get(self.action, None)
-        if serializer_cls:
-            return serializer_cls
-        return self.serializer_class
 
+class CommentReportViewSet(ReportViewSet):
+    """Report - Comment"""
 
-class CommentReportViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
-):
     queryset = reportapp_models.CommentReport.objects.all()
-    serializer_class = reportapp_serializers.CommentReportSerializer
+    serializer_class = CommentReportSerializer
     serializer_action_class = {
-        "list": reportapp_serializers.CommentReportListSerializer,
-        "create": reportapp_serializers.CommentReportListSerializer,
+        "list": CommentReportListSerializer,
+        "create": CommentReportListSerializer,
     }
-
-    def get_serializer_class(self):
-        serializer_cls = self.serializer_action_class.get(self.action, None)
-        if serializer_cls:
-            return serializer_cls
-        return self.serializer_class
