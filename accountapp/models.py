@@ -47,4 +47,4 @@ class Profile(models.Model):
     avatar = models.ImageField(
         "아바타 이미지", blank=True, upload_to="accountapp/profile/%Y/%m/%d/%H"
     )
-    email = models.EmailField("이메일")
+    email = models.EmailField("이메일", unique=True, editable=False)
