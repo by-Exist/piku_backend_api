@@ -7,10 +7,11 @@ from worldcupapp.serializers import (
     WorldcupSerializer,
 )
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from accountapp.serializers import UserListSerializer, UserSerializer
 
 
-class AbstractReportSerializer(serializers.HyperlinkedModelSerializer):
+class AbstractReportSerializer(serializers.ModelSerializer):
 
     reporter = UserListSerializer(read_only=True)
 
@@ -43,6 +44,12 @@ class AbstractReportListSerializer(serializers.HyperlinkedModelSerializer):
             "created_at",
         )
 
+    def validate_reported_pk(self, reported_pk):
+        reported_model = self.Meta.reported_model
+        if not reported_model.objects.filter(pk=reported_pk).exists():
+            raise serializers.ValidationError("신고 대상이 존재하지 않습니다.")
+        return reported_pk
+
     def create(self, validated_data):
         reporter = self.context["request"].user
         if not reporter.is_authenticated:
@@ -63,6 +70,7 @@ class UserReportSerializer(AbstractReportSerializer):
 
 class UserReportListSerializer(AbstractReportListSerializer):
 
+    url = serializers.HyperlinkedIdentityField(view_name="report-user-detail")
     reported = UserSerializer(read_only=True)
     reported_pk = serializers.IntegerField(write_only=True)
 
@@ -81,6 +89,7 @@ class WorldcupReportSerializer(AbstractReportSerializer):
 
 class WorldcupReportListSerializer(AbstractReportListSerializer):
 
+    url = serializers.HyperlinkedIdentityField(view_name="report-worldcup-detail")
     reported = WorldcupSerializer(read_only=True)
     reported_pk = serializers.IntegerField(write_only=True)
 
@@ -99,6 +108,7 @@ class MediaReportSerializer(AbstractReportSerializer):
 
 class MediaReportListSerializer(AbstractReportListSerializer):
 
+    url = serializers.HyperlinkedIdentityField(view_name="report-media-detail")
     reported = MediaSerializer(read_only=True)
     reported_pk = serializers.IntegerField(write_only=True)
 
@@ -117,6 +127,7 @@ class CommentReportSerializer(AbstractReportSerializer):
 
 class CommentReportListSerializer(AbstractReportListSerializer):
 
+    url = serializers.HyperlinkedIdentityField(view_name="report-comment-detail")
     reported = CommentSerializer(read_only=True)
     reported_pk = serializers.IntegerField(write_only=True)
 
