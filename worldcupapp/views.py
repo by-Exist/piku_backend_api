@@ -45,31 +45,31 @@ class MediaViewSet(
 ):
 
     media_models = {
-        "T": worldcupapp_models.TextMedia,
-        "I": worldcupapp_models.ImageMedia,
-        "G": worldcupapp_models.GifMedia,
-        "V": worldcupapp_models.VideoMedia,
+        "Text": worldcupapp_models.TextMedia,
+        "Image": worldcupapp_models.ImageMedia,
+        "Gif": worldcupapp_models.GifMedia,
+        "Video": worldcupapp_models.VideoMedia,
     }
     serializer_class = {
-        "T": worldcupapp_serializer.TextMediaSerializer,
-        "I": worldcupapp_serializer.ImageMediaSerializer,
-        "G": worldcupapp_serializer.GifMediaSerializer,
-        "V": worldcupapp_serializer.VideoMediaSerializer,
+        "Text": worldcupapp_serializer.TextMediaSerializer,
+        "Image": worldcupapp_serializer.ImageMediaSerializer,
+        "Gif": worldcupapp_serializer.GifMediaSerializer,
+        "Video": worldcupapp_serializer.VideoMediaSerializer,
     }
     serializer_action_class = {
-        "T": {
+        "Text": {
             "list": worldcupapp_serializer.TextMediaListSerializer,
             "create": worldcupapp_serializer.TextMediaListSerializer,
         },
-        "I": {
+        "Image": {
             "list": worldcupapp_serializer.ImageMediaListSerializer,
             "create": worldcupapp_serializer.ImageMediaListSerializer,
         },
-        "G": {
+        "Gif": {
             "list": worldcupapp_serializer.GifMediaListSerializer,
             "create": worldcupapp_serializer.GifMediaListSerializer,
         },
-        "V": {
+        "Video": {
             "list": worldcupapp_serializer.VideoMediaListSerializer,
             "create": worldcupapp_serializer.VideoMediaListSerializer,
         },

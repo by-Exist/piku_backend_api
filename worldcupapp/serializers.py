@@ -1,19 +1,31 @@
 from django.urls import reverse
 from django.db import models
 from rest_framework import serializers
-from rest_framework_nested.relations import NestedHyperlinkedRelatedField
 from accountapp.serializers import UserListSerializer
 from worldcupapp import models as worldcupapp_models
-from worldcupapp import views as worldcupapp_views
+
 
 # Media Serializer
+class BodyField(serializers.CharField):
+    def to_representation(self, value):
+        worldcup_pk = self.context["view"].kwargs["worldcup_pk"]
+        media_type = worldcupapp_models.Worldcup.objects.get(pk=worldcup_pk).media_type
+        if media_type in ("Text", "Gif"):
+            return self.context["request"].build_absolute_uri(value)
+        else:
+            return value
+
+
 class MediaSerializer(serializers.ModelSerializer):
+
+    body = BodyField()
+
     class Meta:
         model = worldcupapp_models.BaseMedia
         fields = (
             "id",
             "title",
-            "media",
+            "body",
             "win_count",
             "choice_count",
         )
@@ -21,7 +33,8 @@ class MediaSerializer(serializers.ModelSerializer):
 
 class MediaListSerializer(MediaSerializer):
 
-    url = serializers.SerializerMethodField(method_name="get_media_url")
+    url = serializers.SerializerMethodField(method_name="get_body_url")
+    body = BodyField()
 
     class Meta:
         model = worldcupapp_models.BaseMedia
@@ -29,10 +42,10 @@ class MediaListSerializer(MediaSerializer):
             "id",
             "url",
             "title",
-            "media",
+            "body",
         )
 
-    def get_media_url(self, obj) -> str:
+    def get_body_url(self, obj) -> str:
         request = self.context["request"]
         rel_url = reverse("media-detail", args=(obj.worldcup.pk, obj.pk))
         return request.build_absolute_uri(rel_url)
@@ -227,19 +240,19 @@ class ThumbnailListSerializer(serializers.ListSerializer):
         return [self.child.to_representation(item) for item in iterable]
 
 
-class DynamicMediaSerializer(serializers.CharField):
+class MediaBodyField(serializers.CharField):
     def to_representation(self, value):
         if value.worldcup.media_type in ["I", "G"]:
-            return value.media.url
+            return value.body.url
         else:
-            return value.media
+            return value.body
 
 
 class WorldcupSerializer(serializers.HyperlinkedModelSerializer):
 
     creator = UserListSerializer(read_only=True)
     thumbnail = ThumbnailListSerializer(
-        child=DynamicMediaSerializer(), source="media_set"
+        read_only=True, child=MediaBodyField(), source="media_set"
     )
     media_list = serializers.HyperlinkedIdentityField(
         view_name="media-list", lookup_url_kwarg="worldcup_pk"
@@ -275,7 +288,7 @@ class WorldcupListSerializer(serializers.HyperlinkedModelSerializer):
 
     creator = UserListSerializer(read_only=True)
     thumbnail = ThumbnailListSerializer(
-        child=DynamicMediaSerializer(), source="media_set"
+        read_only=True, child=MediaBodyField(), source="media_set"
     )
 
     class Meta:
