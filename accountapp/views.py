@@ -82,7 +82,9 @@ class UserViewSet(
     @action(detail=True, methods=["patch"])
     def password(self, request, pk=None):
         user = self.get_object()
-        serializer = self.get_serializer_class()(data=request.data)
+        serializer = self.get_serializer_class()(
+            data=request.data, context=self.get_serializer_context()
+        )
         if serializer.is_valid():
             user.set_password(serializer.data["new_password"])
             user.save()

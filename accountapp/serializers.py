@@ -1,3 +1,4 @@
+from rest_framework.validators import UniqueValidator
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from accountapp.models import Profile
@@ -47,14 +48,21 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserListSerializer(serializers.HyperlinkedModelSerializer):
 
-    profile_obj = Profile()
+    _profile_nickname_validators = [
+        *Profile._meta.get_field("nickname").validators,
+        UniqueValidator(Profile.objects.all(), message="이미 사용중인 닉네임입니다."),
+    ]
+    _profile_email_validators = [
+        *Profile._meta.get_field("email").validators,
+        UniqueValidator(Profile.objects.all(), message="이미 사용중인 이메일입니다."),
+    ]
 
     profile = ProfileListSerializer(read_only=True)
     nickname = serializers.CharField(
-        write_only=True, validators=profile_obj._meta.get_field("nickname").validators
+        write_only=True, validators=_profile_nickname_validators
     )
     email = serializers.EmailField(
-        write_only=True, validators=profile_obj._meta.get_field("email").validators
+        write_only=True, validators=_profile_email_validators
     )
 
     class Meta:
@@ -85,9 +93,26 @@ class UserListSerializer(serializers.HyperlinkedModelSerializer):
 
 class PasswordChangeSerializer(serializers.Serializer):
 
-    old_password = serializers.CharField()
-    new_password = serializers.CharField()
-    repeat_new_password = serializers.CharField()
+    _password_validators = get_user_model()._meta.get_field("password").validators
+
+    old_password = serializers.CharField(validators=_password_validators)
+    new_password = serializers.CharField(validators=_password_validators)
+    repeat_new_password = serializers.CharField(validators=_password_validators)
+
+    def validate_old_password(self, old_password):
+        user = self.context["request"].user
+        if not user.check_password(old_password):
+            raise serializers.ValidationError("잘못 된 비밀번호입니다.")
+        return old_password
+
+    def validate(self, attrs):
+        new_password = attrs["new_password"]
+        repeat_new_password = attrs["repeat_new_password"]
+        if new_password != repeat_new_password:
+            raise serializers.ValidationError(
+                {"repeat_new_password": "새로 입력한 두 비밀번호가 일치하지 않습니다."}
+            )
+        return attrs
 
 
 # Token Serializer
