@@ -8,10 +8,10 @@ User = get_user_model()
 
 class Worldcup(models.Model):
     class MediaType(models.TextChoices):
-        TEXT = "T", "Text"
-        IMAGE = "I", "Image"
-        GIF = "G", "Gif"
-        Video = "V", "Video"
+        TEXT = "Text", "텍스트"
+        IMAGE = "Image", "이미지"
+        GIF = "Gif", "움짤"
+        Video = "Video", "외부 비디오 링크"
 
     class PublishType(models.TextChoices):
         PUBLIC = "PUBLIC", "공개"
@@ -24,7 +24,7 @@ class Worldcup(models.Model):
     )
     subtitle = models.CharField("부제", max_length=511)
     media_type = models.CharField(
-        "미디어 타입", max_length=1, choices=MediaType.choices, default=MediaType.IMAGE
+        "미디어 타입", max_length=15, choices=MediaType.choices, default=MediaType.IMAGE
     )
     publish_type = models.CharField(
         "배포 방식", max_length=8, choices=PublishType.choices, default=PublishType.PRIVATE
@@ -51,7 +51,7 @@ class BaseMedia(models.Model):
         Worldcup, on_delete=models.CASCADE, verbose_name="월드컵", related_name="media_set"
     )
     title = models.CharField("제목", max_length=31)
-    media = models.CharField("미디어", max_length=511)
+    body = models.CharField("미디어", max_length=511)
     win_count = models.PositiveIntegerField(
         "승리 횟수", blank=True, default=0, editable=False
     )
@@ -81,7 +81,7 @@ class AbstractMedia(models.Model):
 
 
 class TextMedia(AbstractMedia):
-    media = models.CharField("Text 미디어", max_length=511)
+    body = models.CharField("Text 미디어", max_length=511)
 
     class Meta:
         db_table = "Medias"
@@ -89,7 +89,7 @@ class TextMedia(AbstractMedia):
 
 
 class ImageMedia(AbstractMedia):
-    media = models.ImageField(
+    body = models.ImageField(
         "Image 미디어", upload_to="worldcupapp/imagemedia/%Y/%m/%d/%H"
     )
 
@@ -99,7 +99,7 @@ class ImageMedia(AbstractMedia):
 
 
 class GifMedia(AbstractMedia):
-    media = models.ImageField("Gif 미디어", upload_to="worldcupapp/gifmedia/%Y/%m/%d/%H")
+    body = models.ImageField("Gif 미디어", upload_to="worldcupapp/gifmedia/%Y/%m/%d/%H")
 
     class Meta:
         db_table = "Medias"
@@ -107,7 +107,7 @@ class GifMedia(AbstractMedia):
 
 
 class VideoMedia(AbstractMedia):
-    media = models.CharField("Video 미디어", max_length=255)
+    body = models.CharField("Video 미디어", max_length=255)
 
     class Meta:
         db_table = "Medias"
