@@ -1,108 +1,10 @@
 from django.urls import reverse
+from django.db import models
 from rest_framework import serializers
+from rest_framework_nested.relations import NestedHyperlinkedRelatedField
 from accountapp.serializers import UserListSerializer
 from worldcupapp import models as worldcupapp_models
 from worldcupapp import views as worldcupapp_views
-
-
-# Worldcup Serializer
-class WorldcupSerializer(serializers.HyperlinkedModelSerializer):
-
-    creator = UserListSerializer(read_only=True)
-    thumbnail = serializers.SerializerMethodField("get_thumbnail")
-    media_list_url = serializers.SerializerMethodField(
-        method_name="get_media_list_url", read_only=True
-    )
-    comment_list_url = serializers.SerializerMethodField(
-        method_name="get_comment_list_url", read_only=True
-    )
-
-    class Meta:
-        model = worldcupapp_models.Worldcup
-        fields = (
-            "id",
-            "thumbnail",
-            "title",
-            "subtitle",
-            "media_type",
-            "publish_type",
-            "password",
-            "play_count",
-            "created_at",
-            "updated_at",
-            "creator",
-            "media_list_url",
-            "comment_list_url",
-        )
-        extra_kwargs = {
-            "creator": {"read_only": True},
-            "password": {"write_only": True},
-        }
-
-    def get_media_list_url(self, obj) -> str:
-        request = self.context["view"].request
-        url_ref = reverse("media-list", args=[obj.id])
-        url_abs = request.build_absolute_uri(url_ref)
-        return url_abs
-
-    def get_comment_list_url(self, obj) -> str:
-        request = self.context["view"].request
-        url_ref = reverse("comment-list", args=[obj.id])
-        url_abs = request.build_absolute_uri(url_ref)
-        return url_abs
-
-    def get_thumbnail(self, obj):
-        media_model = worldcupapp_views.MediaViewSet.media_models[obj.media_type]
-        thumbnail_media_qs = media_model.objects.filter(worldcup=obj).all()[:2]
-        if obj.media_type in ("T", "V"):
-            return [media.media for media in thumbnail_media_qs]
-        else:
-            request = self.context["request"]
-            return [
-                request.build_absolute_uri(media.media.url)
-                for media in thumbnail_media_qs
-            ]
-
-
-class WorldcupListSerializer(serializers.HyperlinkedModelSerializer):
-
-    creator = UserListSerializer(read_only=True)
-    thumbnail = serializers.SerializerMethodField("get_thumbnail")
-
-    class Meta:
-        model = worldcupapp_models.Worldcup
-        fields = (
-            "id",
-            "url",
-            "thumbnail",
-            "title",
-            "subtitle",
-            "media_type",
-            "publish_type",
-            "creator",
-        )
-        extra_kwargs = {
-            "creator": {"read_only": True},
-            "media_type": {"required": True},
-            "publish_type": {"read_only": True},
-        }
-
-    def get_thumbnail(self, obj):
-        media_model = worldcupapp_views.MediaViewSet.media_models[obj.media_type]
-        thumbnail_media_qs = media_model.objects.filter(worldcup=obj).all()[:2]
-        if obj.media_type in ("T", "V"):
-            return [media.media for media in thumbnail_media_qs]
-        else:
-            request = self.context["request"]
-            return [
-                request.build_absolute_uri(media.media.url)
-                for media in thumbnail_media_qs
-            ]
-
-    def create(self, validated_data):
-        validated_data |= {"creator": self.context["view"].request.user}
-        return super().create(validated_data)
-
 
 # Media Serializer
 class MediaSerializer(serializers.ModelSerializer):
@@ -313,4 +215,87 @@ class AnonymouseCommentCreateSerializer(serializers.ModelSerializer):
         if media_id:
             media = worldcupapp_models.BaseMedia.objects.get(pk=media_id)
             validated_data |= {"media": media}
+        return super().create(validated_data)
+
+
+# Worldcup Serializer
+class ThumbnailListSerializer(serializers.ListSerializer):
+    """두 개의 미디어만 추출하도록 제한"""
+
+    def to_representation(self, data):
+        iterable = data.all()[:2] if isinstance(data, models.Manager) else data
+        return [self.child.to_representation(item) for item in iterable]
+
+
+class DynamicMediaSerializer(serializers.CharField):
+    def to_representation(self, value):
+        if value.worldcup.media_type in ["I", "G"]:
+            return value.media.url
+        else:
+            return value.media
+
+
+class WorldcupSerializer(serializers.HyperlinkedModelSerializer):
+
+    creator = UserListSerializer(read_only=True)
+    thumbnail = ThumbnailListSerializer(
+        child=DynamicMediaSerializer(), source="media_set"
+    )
+    media_list = serializers.HyperlinkedIdentityField(
+        view_name="media-list", lookup_url_kwarg="worldcup_pk"
+    )
+    comment_list = serializers.HyperlinkedIdentityField(
+        view_name="comment-list", lookup_url_kwarg="worldcup_pk"
+    )
+
+    class Meta:
+        model = worldcupapp_models.Worldcup
+        fields = (
+            "id",
+            "thumbnail",
+            "title",
+            "subtitle",
+            "media_type",
+            "publish_type",
+            "password",
+            "play_count",
+            "created_at",
+            "updated_at",
+            "creator",
+            "media_list",
+            "comment_list",
+        )
+        extra_kwargs = {
+            "creator": {"read_only": True},
+            "password": {"write_only": True},
+        }
+
+
+class WorldcupListSerializer(serializers.HyperlinkedModelSerializer):
+
+    creator = UserListSerializer(read_only=True)
+    thumbnail = ThumbnailListSerializer(
+        child=DynamicMediaSerializer(), source="media_set"
+    )
+
+    class Meta:
+        model = worldcupapp_models.Worldcup
+        fields = (
+            "id",
+            "url",
+            "thumbnail",
+            "title",
+            "subtitle",
+            "media_type",
+            "publish_type",
+            "creator",
+        )
+        extra_kwargs = {
+            "creator": {"read_only": True},
+            "media_type": {"required": True},
+            "publish_type": {"read_only": True},
+        }
+
+    def create(self, validated_data):
+        validated_data |= {"creator": self.context["view"].request.user}
         return super().create(validated_data)
