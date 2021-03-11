@@ -1,6 +1,6 @@
-from django.urls import reverse
 from django.db import models
 from rest_framework import serializers
+from rest_framework_nested.relations import NestedHyperlinkedRelatedField
 from accountapp.serializers import UserListSerializer
 from worldcupapp import models as worldcupapp_models
 
@@ -10,10 +10,9 @@ class BodyField(serializers.CharField):
     def to_representation(self, value):
         worldcup_pk = self.context["view"].kwargs["worldcup_pk"]
         media_type = worldcupapp_models.Worldcup.objects.get(pk=worldcup_pk).media_type
-        if media_type in ("Text", "Gif"):
+        if media_type in ("Image", "Gif"):
             return self.context["request"].build_absolute_uri(value)
-        else:
-            return value
+        return value
 
 
 class MediaSerializer(serializers.ModelSerializer):
@@ -33,7 +32,11 @@ class MediaSerializer(serializers.ModelSerializer):
 
 class MediaListSerializer(MediaSerializer):
 
-    url = serializers.SerializerMethodField(method_name="get_body_url")
+    url = NestedHyperlinkedRelatedField(
+        read_only=True,
+        view_name="media-detail",
+        parent_lookup_kwargs={"worldcup_pk": "worldcup__pk"},
+    )
     body = BodyField()
 
     class Meta:
@@ -44,11 +47,6 @@ class MediaListSerializer(MediaSerializer):
             "title",
             "body",
         )
-
-    def get_body_url(self, obj) -> str:
-        request = self.context["request"]
-        rel_url = reverse("media-detail", args=(obj.worldcup.pk, obj.pk))
-        return request.build_absolute_uri(rel_url)
 
     def create(self, validated_data):
         worldcup_pk = self.context["view"].kwargs["worldcup_pk"]
@@ -133,7 +131,11 @@ class CommentSerializer(serializers.HyperlinkedModelSerializer):
 
 class CommentListSerializer(serializers.HyperlinkedModelSerializer):
 
-    url = serializers.SerializerMethodField("get_url")
+    url = NestedHyperlinkedRelatedField(
+        read_only=True,
+        view_name="media-detail",
+        parent_lookup_kwargs={"worldcup_pk": "worldcup__pk"},
+    )
     writer = UserListSerializer(read_only=True)
     media = MediaListSerializer(read_only=True)
     media_id = serializers.IntegerField(write_only=True, allow_null=True)
@@ -157,9 +159,6 @@ class CommentListSerializer(serializers.HyperlinkedModelSerializer):
             "worldcup": {"read_only": True},
             "anonymous_nickname": {"read_only": True},
         }
-
-    def get_url(self, obj):
-        return self.context["request"].build_absolute_uri(obj.get_absolute_url())
 
     def create(self, validated_data):
         user = self.context["request"].user
