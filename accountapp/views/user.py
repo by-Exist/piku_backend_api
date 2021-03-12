@@ -1,13 +1,14 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_text
-from rest_framework import viewsets, status, mixins
+from rest_framework import status, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
+from drf_action_serializer.viewsets import ActionSerializerGenericViewSet
 from accountapp.policys import UserViewSetAccessPolicy
 from accountapp.serializers import (
     UserDetailSerializer,
@@ -15,7 +16,7 @@ from accountapp.serializers import (
     PasswordChangeSerializer,
 )
 
-
+# TODO: 다른 모듈로 분리하는 것이 적절한 것 같다.
 class AccountActivationTokenGenerator(PasswordResetTokenGenerator):
     def _make_hash_value(self, user, timestamp):
         return f"{user.pk}{timestamp}{user.is_active}"
@@ -29,7 +30,7 @@ class UserViewSet(
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
+    ActionSerializerGenericViewSet,
 ):
 
     permission_classes = [UserViewSetAccessPolicy]
@@ -41,12 +42,7 @@ class UserViewSet(
         "password": PasswordChangeSerializer,
     }
 
-    def get_serializer_class(self):
-        serializer_cls = self.serializer_action_class.get(self.action, None)
-        if serializer_cls:
-            return serializer_cls
-        return self.serializer_class
-
+    # TODO: 좀 더 깔끔하게 정리할 방법이 없을까?
     def perform_create(self, serializer):
         user = serializer.save()
         uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
@@ -59,6 +55,7 @@ class UserViewSet(
         mail_to = serializer.validated_data["email"]
         send_mail(mail_title, mail_body, from_email=mail_from, recipient_list=[mail_to])
 
+    # TODO: 이 것과, 아랫 것의 extend_schema를 ViewSet에 등록하도록 옮기자.
     @extend_schema(
         description="""회원가입 시 이메일로 전송되는 링크. user의 is_active를 True로 전환""",
         responses={200: None},
