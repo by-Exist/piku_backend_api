@@ -1,28 +1,24 @@
 from django.contrib.auth.models import AbstractUser, UserManager, Group, Permission
-from django.db import models
+from django.db import models, transaction
 from django.core.validators import MinLengthValidator, MaxLengthValidator
 from accountapp import models as accountapp_models
 from accountapp.validators import CustomASCIIUsernameValidator
 
 
 class CustomUserManager(UserManager):
+    @transaction.atomic
     def create_user_with_profile(
         self,
-        username,
-        password,
-        profile_nickname,
-        profile_email,
         user_kwargs,
         profile_kwargs,
     ):
-        user_kwargs.setdefault("is_staff", False)
-        user_kwargs.setdefault("is_superuser", False)
-        user = self._create_user(
-            username=username, email=None, password=password, **user_kwargs
-        )
-        accountapp_models.Profile.objects.create(
-            user=user, nickname=profile_nickname, email=profile_email, **profile_kwargs
-        )
+        user_kwargs |= {
+            "email": None,
+            "is_staff": False,
+            "is_superuser": False,
+        }
+        user = self._create_user(**user_kwargs)
+        accountapp_models.Profile.objects.create(user=user, **profile_kwargs)
         return user
 
 

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -5,42 +6,14 @@ from accountapp.models import Profile
 from accountapp.serializers.profile import ProfileListSerializer
 
 
-class UserDetailSerializer(serializers.ModelSerializer):
-    profile = ProfileListSerializer(read_only=True)
-
-    class Meta:
-        model = get_user_model()
-        fields = (
-            "id",
-            "username",
-            "password",
-            "profile",
-            "is_active",
-            "last_login",
-            "date_joined",
-        )
-        extra_kwargs = {
-            "username": {"read_only": True},
-            "password": {"write_only": True},
-            "last_login": {"read_only": True},
-            "date_joined": {"read_only": True},
-        }
-
-    def update(self, instance, validated_data):
-        pw = validated_data.pop("password")
-        instance.set_password(pw)
-        instance.save()
-        return instance
-
-
 class UserListSerializer(serializers.HyperlinkedModelSerializer):
 
     _profile_nickname_validators = [
-        *Profile._meta.get_field("nickname").validators,
+        *deepcopy(Profile._meta.get_field("nickname").validators),
         UniqueValidator(Profile.objects.all(), message="이미 사용중인 닉네임입니다."),
     ]
     _profile_email_validators = [
-        *Profile._meta.get_field("email").validators,
+        *deepcopy(Profile._meta.get_field("email").validators),
         UniqueValidator(Profile.objects.all(), message="이미 사용중인 이메일입니다."),
     ]
 
@@ -71,16 +44,47 @@ class UserListSerializer(serializers.HyperlinkedModelSerializer):
         }
 
     def create(self, validated_data):
-        email = validated_data.pop("email")
-        nickname = validated_data.pop("nickname")
-        user = get_user_model().objects.create_user(**validated_data, is_active=False)
-        Profile.objects.create(user=user, nickname=nickname, email=email)
+        user_kwargs = validated_data
+        profile_kwargs = {
+            "nickname": user_kwargs.pop("nickname"),
+            "email": user_kwargs.pop("email"),
+        }
+        user = get_user_model().objects.create_user_with_profile(
+            user_kwargs, profile_kwargs
+        )
         return user
+
+
+class UserDetailSerializer(serializers.ModelSerializer):
+    profile = ProfileListSerializer(read_only=True)
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "id",
+            "username",
+            "password",
+            "profile",
+            "is_active",
+            "last_login",
+            "date_joined",
+        )
+        extra_kwargs = {
+            "username": {"read_only": True},
+            "password": {"write_only": True},
+            "last_login": {"read_only": True},
+            "date_joined": {"read_only": True},
+        }
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError
 
 
 class PasswordChangeSerializer(serializers.Serializer):
 
-    _password_validators = get_user_model()._meta.get_field("password").validators
+    _password_validators = deepcopy(
+        get_user_model()._meta.get_field("password").validators
+    )
 
     old_password = serializers.CharField(validators=_password_validators)
     new_password = serializers.CharField(validators=_password_validators)
