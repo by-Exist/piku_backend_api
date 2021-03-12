@@ -11,7 +11,7 @@ from accountapp.views import (
 router = SimpleRouter()
 
 router.register(prefix="accounts", viewset=UserViewSet, basename="account")
-# router.register(prefix="profiles", viewset=ProfileViewSet, basename="profile")
+router.register(prefix="profiles", viewset=ProfileViewSet, basename="profile")
 
 
 urlpatterns = [

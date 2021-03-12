@@ -4,11 +4,11 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_text
-from rest_framework import status, mixins
+from rest_framework import status, mixins, viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
-from drf_action_serializer.viewsets import ActionSerializerGenericViewSet
+from drf_action_serializer.mixins import ActionSerializerMixin
 from accountapp.policys import UserViewSetAccessPolicy
 from accountapp.serializers import (
     UserDetailSerializer,
@@ -26,14 +26,14 @@ account_activation_token = AccountActivationTokenGenerator()
 
 
 class UserViewSet(
+    ActionSerializerMixin,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
-    ActionSerializerGenericViewSet,
+    viewsets.GenericViewSet,
 ):
 
-    permission_classes = [UserViewSetAccessPolicy]
     queryset = get_user_model().objects.all()
     serializer_class = UserDetailSerializer
     serializer_action_class = {
@@ -41,6 +41,10 @@ class UserViewSet(
         "create": UserListSerializer,
         "password": PasswordChangeSerializer,
     }
+
+    permission_classes = [UserViewSetAccessPolicy]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ["date_joined", "last_login"]
 
     # TODO: 좀 더 깔끔하게 정리할 방법이 없을까?
     def perform_create(self, serializer):
