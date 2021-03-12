@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     # Third apps
     "drf_spectacular",
     "rest_framework",
+    "polymorphic",
     # Local apps
     "accountapp",
     # "reportapp",
