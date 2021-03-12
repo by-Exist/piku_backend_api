@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "polymorphic",
     # Local apps
+    "drf_action_serializer",
     "accountapp",
     # "reportapp",
     # "worldcupapp",
