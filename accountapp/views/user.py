@@ -34,7 +34,7 @@ class UserViewSet(
     viewsets.GenericViewSet,
 ):
 
-    queryset = get_user_model().objects.all()
+    queryset = get_user_model().objects.all().select_related("profile")
     serializer_class = UserDetailSerializer
     serializer_action_class = {
         "list": UserListSerializer,
