@@ -10,20 +10,20 @@ from accountapp.views import (
 
 router = SimpleRouter()
 
-router.register("accounts", UserViewSet, "account")
-router.register("profiles", ProfileViewSet, "profile")
+router.register(prefix="accounts", viewset=UserViewSet, basename="account")
+# router.register(prefix="profiles", viewset=ProfileViewSet, basename="profile")
 
 
 urlpatterns = [
     *router.urls,
-    path(
-        "token/",
-        DecoratedTokenObtainPairView.as_view(),
-        name="token_obtain_pair",
-    ),
-    path(
-        "token/refresh/",
-        DecoratedTokenRefreshView.as_view(),
-        name="token_refresh",
-    ),
+    # path(
+    #     "token/",
+    #     DecoratedTokenObtainPairView.as_view(),
+    #     name="token_obtain_pair",
+    # ),
+    # path(
+    #     "token/refresh/",
+    #     DecoratedTokenRefreshView.as_view(),
+    #     name="token_refresh",
+    # ),
 ]

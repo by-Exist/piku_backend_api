@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accountapp', '0008_auto_20210312_1019'),
+        ("accountapp", "0008_auto_20210312_1019"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='customuser',
-            name='email',
-            field=models.EmailField(blank=True, max_length=254, verbose_name='email address'),
+            model_name="customuser",
+            name="email",
+            field=models.EmailField(
+                blank=True, max_length=254, verbose_name="email address"
+            ),
         ),
     ]
