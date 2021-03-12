@@ -9,7 +9,6 @@ PROJECT_NAME = os.environ.get("DJANGO_SETTINGS_MODULE").split(".")[0]
 
 
 # Application definition
-
 INSTALLED_APPS = [
     # Django apps
     "django.contrib.admin",
@@ -23,8 +22,8 @@ INSTALLED_APPS = [
     "rest_framework",
     # Local apps
     "accountapp",
-    "reportapp",
-    "worldcupapp",
+    # "reportapp",
+    # "worldcupapp",
 ]
 
 MIDDLEWARE = [
@@ -57,12 +56,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
-
 AUTH_USER_MODEL = "accountapp.CustomUser"
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
@@ -75,25 +72,18 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
-
 LANGUAGE_CODE = "ko"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
-
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / PROJECT_NAME / "_static"
-
 MEDIA_URL = "/media/"
+STATIC_ROOT = BASE_DIR / PROJECT_NAME / "_static"
 MEDIA_ROOT = BASE_DIR / PROJECT_NAME / "_media"
 
 
