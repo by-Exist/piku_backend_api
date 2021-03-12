@@ -1,24 +1,11 @@
-from rest_framework.validators import UniqueValidator
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from accountapp.models import Profile
-
-# ProfileSerializer
-class ProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ("nickname", "avatar", "email")
-        extra_kwargs = {"email": {"read_only": True}}
+from accountapp.serializers.profile import ProfileListSerializer
 
 
-class ProfileListSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ("url", "nickname", "avatar", "email")
-
-
-# UserSerializer
-class UserSerializer(serializers.ModelSerializer):
+class UserDetailSerializer(serializers.ModelSerializer):
     profile = ProfileListSerializer(read_only=True)
 
     class Meta:
@@ -113,26 +100,3 @@ class PasswordChangeSerializer(serializers.Serializer):
                 {"repeat_new_password": "새로 입력한 두 비밀번호가 일치하지 않습니다."}
             )
         return attrs
-
-
-# Token Serializer
-# https://github.com/axnsan12/drf-yasg/issues/407
-class TokenObtainPairResponseSerializer(serializers.Serializer):
-    access = serializers.CharField()
-    refresh = serializers.CharField()
-
-    def create(self, validated_data):
-        raise NotImplementedError()
-
-    def update(self, instance, validated_data):
-        raise NotImplementedError()
-
-
-class TokenRefreshResponseSerializer(serializers.Serializer):
-    access = serializers.CharField()
-
-    def create(self, validated_data):
-        raise NotImplementedError()
-
-    def update(self, instance, validated_data):
-        raise NotImplementedError()

@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.urls import path
 from rest_framework.routers import SimpleRouter
 from accountapp.views import (

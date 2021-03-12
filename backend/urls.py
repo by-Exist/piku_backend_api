@@ -9,7 +9,7 @@ from drf_spectacular.views import (
 import debug_toolbar
 
 urlpatterns = [
-    # path("", include("accountapp.urls")),
+    path("", include("accountapp.urls")),
     # path("", include("worldcupapp.urls")),
     # path("", include("reportapp.urls")),
 ]

@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -6,13 +7,21 @@ from django.utils.encoding import force_bytes, force_text
 from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework_simplejwt import views as simplejwt_views
 from drf_spectacular.utils import extend_schema
-from accountapp import models as accountapp_models
-from accountapp import serializers as accountapp_serializers
-from accountapp.tokens import account_activation_token
-from backend.mixins import PatchOnlyMixin
-from .policys import ProfileViewSetPolicy, UserViewSetAccessPolicy
+from accountapp.policys import UserViewSetAccessPolicy
+from accountapp.serializers import (
+    UserDetailSerializer,
+    UserListSerializer,
+    PasswordChangeSerializer,
+)
+
+
+class AccountActivationTokenGenerator(PasswordResetTokenGenerator):
+    def _make_hash_value(self, user, timestamp):
+        return f"{user.pk}{timestamp}{user.is_active}"
+
+
+account_activation_token = AccountActivationTokenGenerator()
 
 
 class UserViewSet(
@@ -25,11 +34,11 @@ class UserViewSet(
 
     permission_classes = [UserViewSetAccessPolicy]
     queryset = get_user_model().objects.all()
-    serializer_class = accountapp_serializers.UserSerializer
+    serializer_class = UserDetailSerializer
     serializer_action_class = {
-        "list": accountapp_serializers.UserListSerializer,
-        "create": accountapp_serializers.UserListSerializer,
-        "password": accountapp_serializers.PasswordChangeSerializer,
+        "list": UserListSerializer,
+        "create": UserListSerializer,
+        "password": PasswordChangeSerializer,
     }
 
     def get_serializer_class(self):
@@ -90,27 +99,3 @@ class UserViewSet(
             user.save()
             return Response(status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class ProfileViewSet(
-    mixins.RetrieveModelMixin, PatchOnlyMixin, viewsets.GenericViewSet
-):
-    permission_classes = [ProfileViewSetPolicy]
-    queryset = accountapp_models.Profile.objects.all()
-    serializer_class = accountapp_serializers.ProfileSerializer
-
-
-class DecoratedTokenObtainPairView(simplejwt_views.TokenObtainPairView):
-    @extend_schema(
-        responses={200: accountapp_serializers.TokenObtainPairResponseSerializer}
-    )
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
-
-
-class DecoratedTokenRefreshView(simplejwt_views.TokenRefreshView):
-    @extend_schema(
-        responses={200: accountapp_serializers.TokenRefreshResponseSerializer}
-    )
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
