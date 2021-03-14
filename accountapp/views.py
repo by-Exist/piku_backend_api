@@ -1,3 +1,7 @@
+from accountapp.tasks.email import (
+    send_mail_to_find_password,
+    send_mail_to_find_username,
+)
 from django.contrib.auth import get_user_model
 from rest_framework import status, mixins, viewsets, filters
 from rest_framework.decorators import action
@@ -14,6 +18,7 @@ from accountapp.tasks import (
     send_mail_to_join_user,
     user_pk_urlsafe_decode,
 )
+import random
 
 
 class UserViewSet(
@@ -31,6 +36,8 @@ class UserViewSet(
         "list": accountapp_serializers.UserListSerializer,
         "create": accountapp_serializers.UserListSerializer,
         "password": accountapp_serializers.PasswordChangeSerializer,
+        "find_username": accountapp_serializers.UsernameFindSerializer,
+        "find_password": accountapp_serializers.PasswordFindSerializer,
     }
 
     permission_classes = [UserViewSetAccessPolicy]
@@ -48,15 +55,24 @@ class UserViewSet(
             view_name="account-active",
         )
 
-    # TODO: extend_schema를 ViewSet에 등록하도록 하자.
-    @extend_schema(
-        description="""회원가입 시 이메일로 전송되는 링크. user의 is_active를 True로 전환하는 엔드포인트""",
-        responses={200: None},
-    )
+    @action(detail=True, methods=["patch"])
+    def password(self, request, pk=None):
+        # 유저가 자신의 password를 변경하는데에 사용된다.
+        user = self.get_object()
+        serializer = self.get_serializer_class()(
+            data=request.data, context=self.get_serializer_context()
+        )
+        if serializer.is_valid():
+            user.set_password(serializer.validated_data["new_password"])
+            user.save()
+            return Response(status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     @action(
         detail=False, methods=["get"], url_path="active/(?P<uidb64>.+)/(?P<token>.+)"
     )
     def active(self, request, **kwargs):
+        # 회원가입 시 이메일로 전송된 url로 전송하면 is_active를 True로 변경한다.
         user_pk = user_pk_urlsafe_decode(kwargs["uidb64"])
         token = kwargs["token"]
         try:
@@ -73,21 +89,43 @@ class UserViewSet(
             {"error": "token이 유효하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    @extend_schema(
-        description="유저가 직접 자기 계정의 패스워드를 변경할 때 사용하는 엔드포인트",
-        responses={204: None},
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="help/username",
     )
-    @action(detail=True, methods=["patch"])
-    def password(self, request, pk=None):
-        user = self.get_object()
-        serializer = self.get_serializer_class()(
-            data=request.data, context=self.get_serializer_context()
-        )
+    def find_username(self, request, show_length=4, **kwargs):
+        # email로 username의 힌트를 전송한다.
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            user.set_password(serializer.data["new_password"])
-            user.save()
+            email = serializer.validated_data["email"]
+            user = get_user_model().objects.get(profile__email=email)
+            origin_username = user.username
+            half_username = origin_username[:show_length] + "*" * (
+                len(origin_username) - show_length
+            )
+            send_mail_to_find_username(email, half_username)
             return Response(status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(data=serializer.errors, status=status.HTTP_404_NOT_FOUND)
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="help/password",
+    )
+    def find_password(self, request, show_length=4, **kwargs):
+        # email로 변경된 password를 전송한다.
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data["username"]
+            email = serializer.validated_data["email"]
+            user = get_user_model().objects.get(profile__email=email)
+            new_password = str(random.randrange(100000, 1000000))
+            user.set_password(new_password)
+            user.save()
+            send_mail_to_find_password(username, new_password)
+            return Response(status=status.HTTP_200_OK)
+        return Response(data=serializer.errors, status=status.HTTP_404_NOT_FOUND)
 
 
 class ProfileViewSet(

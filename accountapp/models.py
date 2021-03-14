@@ -34,7 +34,7 @@ class CustomUser(AbstractUser):
         error_messages={"max_length": "최대 15글자 까지 입력할 수 있습니다."},
         validators=[
             CustomASCIIUsernameValidator(),
-            MinLengthValidator(5, "최소 5글자 이상 입력해주세요."),
+            MinLengthValidator(8, "최소 5글자 이상 입력해주세요."),
         ],
     )
     password = models.CharField(

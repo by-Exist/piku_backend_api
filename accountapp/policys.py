@@ -25,6 +25,11 @@ class UserViewSetAccessPolicy(AccessPolicy):
             "condition": "is_self",
             "effect": "allow",
         },
+        {
+            "principal": "anonymous",
+            "action": ["find_username", "find_password"],
+            "effect": "allow",
+        },
     ]
 
     def is_self(self, request, view, action) -> bool:

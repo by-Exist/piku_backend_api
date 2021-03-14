@@ -104,3 +104,36 @@ class PasswordChangeSerializer(serializers.Serializer):
                 {"repeat_new_password": "새로 입력한 두 비밀번호가 일치하지 않습니다."}
             )
         return attrs
+
+
+class UsernameFindSerializer(serializers.Serializer):
+
+    email = serializers.EmailField()
+
+    def validate_email(self, email):
+        if (
+            not self.context["view"]
+            .get_queryset()
+            .filter(profile__email=email)
+            .exists()
+        ):
+            raise serializers.ValidationError("해당 이메일로 가입된 계정이 존재하지 않습니다.")
+        return email
+
+
+class PasswordFindSerializer(serializers.Serializer):
+
+    username = serializers.CharField()
+    email = serializers.EmailField()
+
+    def validate(self, attrs):
+        username = attrs["username"]
+        email = attrs["email"]
+        if (
+            not self.context["view"]
+            .get_queryset()
+            .filter(username=username, profile__email=email)
+            .exists()
+        ):
+            raise serializers.ValidationError("해당 계정이 존재하지 않습니다. ID와 Email을 다시 확인해주세요.")
+        return attrs
