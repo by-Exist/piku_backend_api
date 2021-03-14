@@ -1,2 +1,0 @@
-from accountapp.policys.user import UserViewSetAccessPolicy
-from accountapp.policys.profile import ProfileViewSetPolicy

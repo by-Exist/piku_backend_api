@@ -2,7 +2,10 @@ from django.contrib.auth.models import AbstractUser, UserManager, Group, Permiss
 from django.db import models, transaction
 from django.core.validators import MinLengthValidator, MaxLengthValidator
 from accountapp import models as accountapp_models
-from accountapp.validators import CustomASCIIUsernameValidator
+from accountapp.validators import (
+    CustomASCIIUsernameValidator,
+    CustomUnicodeNicknameValidator,
+)
 
 
 class CustomUserManager(UserManager):
@@ -44,3 +47,20 @@ class CustomUser(AbstractUser):
     )
 
     objects = CustomUserManager()
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    nickname = models.CharField(
+        "닉네임",
+        unique=True,
+        max_length=13,
+        validators=[
+            MinLengthValidator(3, "세 글자 이상 입력해주세요."),
+            CustomUnicodeNicknameValidator(),
+        ],
+    )
+    avatar = models.ImageField(
+        "아바타 이미지", blank=True, upload_to="accountapp/profile/%Y/%m/%d/%H"
+    )
+    email = models.EmailField("이메일", unique=True)
