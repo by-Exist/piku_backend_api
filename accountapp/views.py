@@ -39,7 +39,7 @@ class UserViewSet(
 
     def perform_create(self, serializer):
         user = serializer.save()
-        user = get_user_model().objects.get(pk=user).select_related("profile")
+        user = get_user_model().objects.select_related("profile").get(pk=user.pk)
         send_mail_to_join_user(
             request=self.request,
             user=user,
@@ -48,7 +48,7 @@ class UserViewSet(
             view_name="account-active",
         )
 
-    # TODO: 이 것과, 아랫 것의 extend_schema를 ViewSet에 등록하도록 옮기자.
+    # TODO: extend_schema를 ViewSet에 등록하도록 하자.
     @extend_schema(
         description="""회원가입 시 이메일로 전송되는 링크. user의 is_active를 True로 전환하는 엔드포인트""",
         responses={200: None},
