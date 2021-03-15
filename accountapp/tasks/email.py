@@ -1,26 +1,31 @@
 from django.urls import reverse
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 
 
+# TODO: FROM을 적절하게 변경한다.
+
 JOIN_EMAIL_SETTINGS = {
     "TITLE": "{}님, 이메일 인증을 완료해주세요.",
     "DEFAULT_USER_NAME": "회원",
     "MESSAGE": "아래 링크를 클릭하면 회원가입이 완료됩니다.\nLink : {}",
-    # TODO: 적절한 이메일로 변경한다.
     "FROM": "admin@gmail.com",
 }
 
 FIND_USERNAME_SETTINGS = {
     "TITLE": "아이디 찾기 결과입니다.",
-    "MESSAGE": "고객님께서 찾으시는 ID는 다음과 같은 형식으로 구성되어 있습니다.\nID: {}",
+    "MESSAGE": "고객님의 ID는 다음과 같은 형식으로 구성되어 있습니다.\nID: {}",
+    "FROM": "admin@gmail.com",
 }
 
 FIND_PASSWORD_SETTINGS = {
     "TITLE": "새로운 비밀번호 입니다.",
     "MESSAGE": "변경된 비밀번호는 다음과 같습니다.\nPW: {}\n로그인 후 반드시 비밀번호를 변경해주세요.\n만약 본인이 비밀번호 재발급을 요청한 것이 아니라면 즉시 계정을 확인해주세요.",
+    "FROM": "admin@gmail.com",
 }
 
 
@@ -69,13 +74,21 @@ def send_mail_to_find_username(email, half_username):
     """
     유저가 자신의 아이디를 잊어버렸을 경우 이메일로 일부분만 드러난 username을 보낸다.
     """
-    print("아이디 찾기를 시도했어요!")
-    print(f"{email}로 {half_username}을 보냈어요!")
+    send_mail(
+        subject=FIND_USERNAME_SETTINGS["TITLE"],
+        message=FIND_USERNAME_SETTINGS["MESSAGE"].format(half_username),
+        from_email=FIND_USERNAME_SETTINGS["FROM"],
+        recipient_list=[email],
+    )
 
 
-def send_mail_to_find_password(username, new_password):
+def send_mail_to_find_password(email, new_password):
     """
     유저가 자신의 패스워드를 잊어버렸을 경우 이메일로 변경된 password를 보낸다.
     """
-    print("비밀번호 찾기를 시도했어요!")
-    print(f"{username}님에게 새로운 비밀번호 {new_password}를 보냈어요!")
+    send_mail(
+        subject=FIND_PASSWORD_SETTINGS["TITLE"],
+        message=FIND_PASSWORD_SETTINGS["MESSAGE"].format(new_password),
+        from_email=FIND_PASSWORD_SETTINGS["FROM"],
+        recipient_list=[email],
+    )

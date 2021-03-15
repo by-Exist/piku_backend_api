@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from accountapp.tasks.email import (
     send_mail_to_find_password,
     send_mail_to_find_username,
@@ -75,12 +76,7 @@ class UserViewSet(
         # 회원가입 시 이메일로 전송된 url로 전송하면 is_active를 True로 변경한다.
         user_pk = user_pk_urlsafe_decode(kwargs["uidb64"])
         token = kwargs["token"]
-        try:
-            user = get_user_model().objects.get(pk=user_pk)
-        except get_user_model().DoesNotExist:
-            return Response(
-                {"error": "유저가 존재하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST
-            )
+        user = get_object_or_404(self.get_queryset(), pk=user_pk)
         if is_join_sended_token(user, token):
             user.is_active = True
             user.save()
@@ -99,11 +95,9 @@ class UserViewSet(
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             email = serializer.validated_data["email"]
-            user = get_user_model().objects.get(profile__email=email)
-            origin_username = user.username
-            half_username = origin_username[:show_length] + "*" * (
-                len(origin_username) - show_length
-            )
+            user = get_object_or_404(self.get_queryset(), profile__email=email)
+            username = user.username
+            half_username = username[:show_length] + "*" * (len(username) - show_length)
             send_mail_to_find_username(email, half_username)
             return Response(status=status.HTTP_200_OK)
         return Response(data=serializer.errors, status=status.HTTP_404_NOT_FOUND)
@@ -119,11 +113,11 @@ class UserViewSet(
         if serializer.is_valid():
             username = serializer.validated_data["username"]
             email = serializer.validated_data["email"]
-            user = get_user_model().objects.get(profile__email=email)
+            user = self.get_queryset().get(username=username)
             new_password = str(random.randrange(100000, 1000000))
             user.set_password(new_password)
             user.save()
-            send_mail_to_find_password(username, new_password)
+            send_mail_to_find_password(email, new_password)
             return Response(status=status.HTTP_200_OK)
         return Response(data=serializer.errors, status=status.HTTP_404_NOT_FOUND)
 
