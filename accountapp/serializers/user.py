@@ -86,7 +86,7 @@ class PasswordChangeSerializer(serializers.Serializer):
         get_user_model()._meta.get_field("password").validators
     )
 
-    old_password = serializers.CharField(validators=_password_validators)
+    old_password = serializers.CharField()
     new_password = serializers.CharField(validators=_password_validators)
     repeat_new_password = serializers.CharField(validators=_password_validators)
 
