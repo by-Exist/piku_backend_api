@@ -1,3 +1,4 @@
+from pickle import NONE
 from django.shortcuts import get_object_or_404
 from accountapp.tasks.email import (
     send_mail_to_find_password,
@@ -8,12 +9,18 @@ from rest_framework import status, mixins, viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt import views as simplejwt_views
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import (
+    extend_schema_view,
+    extend_schema,
+    OpenApiParameter,
+    OpenApiExample,
+)
+from drf_spectacular.types import OpenApiTypes
 from drf_action_serializer.mixins import ActionSerializerMixin
 from backend.mixins import PatchOnlyMixin
 from accountapp import models as accountapp_models
-from accountapp.policys import ProfileViewSetPolicy, UserViewSetAccessPolicy
 from accountapp import serializers as accountapp_serializers
+from accountapp.policys import ProfileViewSetPolicy, UserViewSetAccessPolicy
 from accountapp.tasks import (
     is_join_sended_token,
     send_mail_to_join_user,
@@ -22,12 +29,60 @@ from accountapp.tasks import (
 import random
 
 
+# TODO: Response를 어떻게 작성하는지 모르겠다.
+@extend_schema_view(
+    list=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="ordering",
+                examples=[
+                    OpenApiExample("(None)", value=None),
+                    OpenApiExample("date_joined", value="date_joined"),
+                    OpenApiExample("-date_joined", value="-date_joined"),
+                    OpenApiExample("last_login", value="last_login"),
+                    OpenApiExample("-last_login", value="-last_login"),
+                ],
+            ),
+        ],
+    ),
+    retrieve=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.PATH,
+                required=True,
+            ),
+        ],
+    ),
+    password=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.PATH,
+                required=True,
+            ),
+        ],
+    ),
+    active=extend_schema(
+        description="user의 is_active를 True로 변경하는 엔트포인트.\n\n해당 엔드포인트에 접근할 수 있는 url은 user 회원 가입시 이메일로 전송된다.\n\ntoken과 uidb64 값을 활용해 user를 인식한다."
+    ),
+    find_username=extend_schema(
+        description="user가 자신의 id(username)을 분실하였을 경우 사용되는 엔드포인트.\n\n입력받은 email을 사용중인 user가 존재할 경우 email로 username의 일부를 가린 문자열(user****)을 전송한다.",
+    ),
+    find_password=extend_schema(
+        description="user가 자신의 password를 분실하였을 경우 사용되는 엔드포인트.\n\n입력받은 username, email과 일치하는 user가 존재할 경우 user의 password를 랜덤한 숫자로 변경시키고 email로 해당 숫자를 전송한다.",
+    ),
+)
 class UserViewSet(
     ActionSerializerMixin,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
+    # TODO: User 계정의 완전한 제거 기능을 제공하는 것이 올바른가?
+    # is_active를 False로 변경하라는데?
+    # mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
 
@@ -56,7 +111,7 @@ class UserViewSet(
             view_name="account-active",
         )
 
-    @action(detail=True, methods=["patch"])
+    @action(detail=True, methods=["put"])
     def password(self, request, pk=None):
         # 유저가 자신의 password를 변경하는데에 사용된다.
         user = self.get_object()
@@ -131,16 +186,16 @@ class ProfileViewSet(
 
 
 class DecoratedTokenObtainPairView(simplejwt_views.TokenObtainPairView):
-    @extend_schema(
-        responses={200: accountapp_serializers.TokenObtainPairResponseSerializer}
-    )
+    # @extend_schema(
+    #     responses={200: accountapp_serializers.TokenObtainPairResponseSerializer}
+    # )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
 
 
 class DecoratedTokenRefreshView(simplejwt_views.TokenRefreshView):
-    @extend_schema(
-        responses={200: accountapp_serializers.TokenRefreshResponseSerializer}
-    )
+    # @extend_schema(
+    #     responses={200: accountapp_serializers.TokenRefreshResponseSerializer}
+    # )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
