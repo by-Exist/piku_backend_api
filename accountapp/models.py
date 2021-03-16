@@ -33,7 +33,7 @@ class CustomUser(AbstractUser):
     username = models.CharField(
         "ID",
         unique=True,
-        max_length=20,
+        max_length=15,
         error_messages={"max_length": "최대 15글자 까지 입력할 수 있습니다."},
         validators=[
             CustomASCIIUsernameValidator(),
