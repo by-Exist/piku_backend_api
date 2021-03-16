@@ -25,8 +25,8 @@ INSTALLED_APPS = [
     "drf_action_serializer",
     "accountapp",
     "tokenapp",
+    "worldcupapp",
     # "reportapp",
-    # "worldcupapp",
 ]
 
 MIDDLEWARE = [

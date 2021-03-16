@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from worldcupapp import models as worldcupapp_models
 from worldcupapp import serializers as worldcupapp_serializer
-from backend import mixins as backend_mixins
+from drf_patchonly_mixin import mixins as dpm_mixins
 from .policys import (
     CommentViewSetAccessPolicy,
     WorldcupViewSetAccessPolicy,
@@ -16,7 +16,7 @@ class WorldcupViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
-    backend_mixins.PatchOnlyMixin,
+    dpm_mixins.PatchOnlyMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
@@ -39,7 +39,7 @@ class MediaViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
-    backend_mixins.PatchOnlyMixin,
+    dpm_mixins.PatchOnlyMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
@@ -110,7 +110,7 @@ class MediaViewSet(
 class CommentViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
-    backend_mixins.PatchOnlyMixin,
+    dpm_mixins.PatchOnlyMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):

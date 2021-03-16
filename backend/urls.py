@@ -11,7 +11,7 @@ import debug_toolbar
 urlpatterns = [
     path("", include("accountapp.urls")),
     path("", include("tokenapp.urls")),
-    # path("", include("worldcupapp.urls")),
+    path("", include("worldcupapp.urls")),
     # path("", include("reportapp.urls")),
 ]
 
