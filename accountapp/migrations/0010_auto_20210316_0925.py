@@ -8,13 +8,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accountapp', '0009_customuser_email'),
+        ("accountapp", "0009_customuser_email"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='customuser',
-            name='username',
-            field=models.CharField(error_messages={'max_length': '최대 15글자 까지 입력할 수 있습니다.'}, max_length=20, unique=True, validators=[accountapp.validators.CustomASCIIUsernameValidator(), django.core.validators.MinLengthValidator(8, '최소 5글자 이상 입력해주세요.')], verbose_name='ID'),
+            model_name="customuser",
+            name="username",
+            field=models.CharField(
+                error_messages={"max_length": "최대 15글자 까지 입력할 수 있습니다."},
+                max_length=20,
+                unique=True,
+                validators=[
+                    accountapp.validators.CustomASCIIUsernameValidator(),
+                    django.core.validators.MinLengthValidator(8, "최소 5글자 이상 입력해주세요."),
+                ],
+                verbose_name="ID",
+            ),
         ),
     ]
