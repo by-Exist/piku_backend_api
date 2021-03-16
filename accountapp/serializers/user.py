@@ -80,7 +80,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
         raise NotImplementedError
 
 
-class PasswordChangeSerializer(serializers.Serializer):
+class UserPasswordSerializer(serializers.Serializer):
 
     _password_validators = deepcopy(
         get_user_model()._meta.get_field("password").validators
@@ -106,7 +106,7 @@ class PasswordChangeSerializer(serializers.Serializer):
         return attrs
 
 
-class UsernameFindSerializer(serializers.Serializer):
+class UserFindUsernameSerializer(serializers.Serializer):
 
     email = serializers.EmailField()
 
@@ -121,7 +121,7 @@ class UsernameFindSerializer(serializers.Serializer):
         return email
 
 
-class PasswordFindSerializer(serializers.Serializer):
+class UserFindPasswordSerializer(serializers.Serializer):
 
     username = serializers.CharField()
     email = serializers.EmailField()

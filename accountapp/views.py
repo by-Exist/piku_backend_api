@@ -131,9 +131,9 @@ class UserViewSet(
     serializer_action_class = {
         "list": accountapp_serializers.UserListSerializer,
         "create": accountapp_serializers.UserListSerializer,
-        "password": accountapp_serializers.PasswordChangeSerializer,
-        "find_username": accountapp_serializers.UsernameFindSerializer,
-        "find_password": accountapp_serializers.PasswordFindSerializer,
+        "password": accountapp_serializers.UserPasswordSerializer,
+        "find_username": accountapp_serializers.UserFindUsernameSerializer,
+        "find_password": accountapp_serializers.UserFindPasswordSerializer,
     }
 
     permission_classes = [UserViewSetAccessPolicy]
@@ -245,4 +245,4 @@ class ProfileViewSet(
 ):
     permission_classes = [ProfileViewSetPolicy]
     queryset = accountapp_models.Profile.objects.all()
-    serializer_class = accountapp_serializers.ProfileSerializer
+    serializer_class = accountapp_serializers.ProfileDetailSerializer
