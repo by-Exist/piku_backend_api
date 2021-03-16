@@ -2,8 +2,8 @@ from copy import deepcopy
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from accountapp.models import Profile
-from accountapp.serializers.profile import ProfileListSerializer
+from ..models import Profile
+from ..serializers.profile import ProfileListSerializer
 
 
 class UserListSerializer(serializers.HyperlinkedModelSerializer):

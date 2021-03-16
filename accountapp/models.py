@@ -1,6 +1,6 @@
+from django.db import models, transaction
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.validators import MinLengthValidator, MaxLengthValidator
-from django.db import models, transaction
 from . import models as accountapp_models
 from .validators import (
     CustomASCIIUsernameValidator,

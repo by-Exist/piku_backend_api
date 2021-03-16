@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from drf_spectacular.utils import (
     extend_schema,
+    extend_schema_view,
     OpenApiParameter,
     OpenApiExample,
 )
@@ -23,6 +24,97 @@ from .tasks import (
 )
 
 
+@extend_schema_view(
+    list=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Account List",
+                "## [ Permission ]",
+                "- AllowAny",
+            ]
+        ),
+        parameters=[
+            OpenApiParameter(
+                name="ordering",
+                examples=[
+                    OpenApiExample("", value=None),
+                    OpenApiExample("date_joined", value="date_joined"),
+                    OpenApiExample("-date_joined", value="-date_joined"),
+                    OpenApiExample("last_login", value="last_login"),
+                    OpenApiExample("-last_login", value="-last_login"),
+                ],
+            ),
+        ],
+    ),
+    create=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Account Create",
+                "## [ Permission ]",
+                "- Anonymous",
+            ]
+        )
+    ),
+    retrieve=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Account Retrieve",
+                "## [ Permission ]",
+                "- AllowAny",
+            ]
+        )
+    ),
+    password=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Password Change",
+                "- User가 자신의 비밀번호를 변경할 때 사용한다.",
+                "## [ Permission ]",
+                "- IsSelf",
+            ]
+        ),
+    ),
+    active=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Account Active",
+                "- 회원가입이 끝나면 해당 엔드포인트로 접근할 수 있는 url이 user의 이메일로 전송된다.",
+                "- url path 내의 token과 user id를 활용하여 해당 user의 is_active를 True로 변환한다.",
+                "## [ Permission ]",
+                "- Anonymous",
+            ]
+        ),
+    ),
+    find_username=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Find Username",
+                "- id(username)을 분실하였을 경우 사용되는 엔드포인트.",
+                "- 입력받은 email을 사용중인 user가 존재할 경우 해당 email로 username의 일부를 가린 문자열(user****)을 전송한다.",
+                "## [ Permission ]",
+                "- Anonymous",
+            ]
+        ),
+    ),
+    find_password=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Find Password",
+                "- password를 분실하였을 경우 사용되는 엔드포인트.",
+                "- 입력받은 username, email과 일치하는 user가 존재할 경우 user의 password를 랜덤한 숫자(100000~999999)로 변경시키고 email로 해당 숫자를 전송한다.",
+                "## [ Permission ]",
+                "- Anonymous",
+            ]
+        ),
+    ),
+)
 class UserViewSet(
     das_mixins.ActionSerializerMixin,
     mixins.ListModelMixin,
@@ -48,69 +140,10 @@ class UserViewSet(
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ["date_joined", "last_login"]
 
-    @extend_schema(
-        description="\n\n".join(
-            [
-                "## [ Description ]",
-                "- Account List",
-                "## [ Permission ]",
-                "- AllowAny",
-            ]
-        ),
-        parameters=[
-            OpenApiParameter(
-                name="ordering",
-                examples=[
-                    OpenApiExample("", value=None),
-                    OpenApiExample("date_joined", value="date_joined"),
-                    OpenApiExample("-date_joined", value="-date_joined"),
-                    OpenApiExample("last_login", value="last_login"),
-                    OpenApiExample("-last_login", value="-last_login"),
-                ],
-            ),
-        ],
+    @action(
+        detail=True,
+        methods=["put"],
     )
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
-    @extend_schema(
-        description="\n\n".join(
-            [
-                "## [ Description ]",
-                "- Account Create",
-                "## [ Permission ]",
-                "- Anonymous",
-            ]
-        )
-    )
-    def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
-
-    @extend_schema(
-        description="\n\n".join(
-            [
-                "## [ Description ]",
-                "- Account Retrieve",
-                "## [ Permission ]",
-                "- AllowAny",
-            ]
-        )
-    )
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-    @extend_schema(
-        description="\n\n".join(
-            [
-                "## [ Description ]",
-                "- Password Change",
-                "- User가 자기 자신의 비밀번호를 변경할 때 사용한다.",
-                "## [ Permission ]",
-                "- IsSelf",
-            ]
-        ),
-    )
-    @action(detail=True, methods=["put"])
     def password(self, request, pk=None):
         user = self.get_object()
         serializer = self.get_serializer_class()(
@@ -122,20 +155,10 @@ class UserViewSet(
             return Response(status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(
-        description="\n\n".join(
-            [
-                "## [ Description ]",
-                "- Account Active",
-                "- 회원가입이 끝나면 해당 엔드포인트로 접근할 수 있는 url이 user의 이메일로 전송된다.",
-                "- url path 내의 token과 user id를 활용하여 해당 user의 is_active를 True로 변환한다.",
-                "## [ Permission ]",
-                "- Anonymous",
-            ]
-        ),
-    )
     @action(
-        detail=False, methods=["get"], url_path="active/(?P<uidb64>.+)/(?P<token>.+)"
+        detail=False,
+        methods=["get"],
+        url_path="active/(?P<uidb64>.+)/(?P<token>.+)",
     )
     def active(self, request, **kwargs):
         user_pk = user_pk_urlsafe_decode(kwargs["uidb64"])
@@ -149,18 +172,6 @@ class UserViewSet(
             {"error": "token이 유효하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    @extend_schema(
-        description="\n\n".join(
-            [
-                "## [ Description ]",
-                "- Find Username",
-                "- user가 자신의 id(username)을 분실하였을 경우 사용되는 엔드포인트.",
-                "- 입력받은 email을 사용중인 user가 존재할 경우 해당 email로 username의 일부를 가린 문자열(user****)을 전송한다.",
-                "## [ Permission ]",
-                "- Anonymous",
-            ]
-        ),
-    )
     @action(
         detail=False,
         methods=["post"],
@@ -177,18 +188,6 @@ class UserViewSet(
             return Response(status=status.HTTP_200_OK)
         return Response(data=serializer.errors, status=status.HTTP_404_NOT_FOUND)
 
-    @extend_schema(
-        description="\n\n".join(
-            [
-                "## [ Description ]",
-                "- Find Password",
-                "- user가 자신의 password를 분실하였을 경우 사용하는 엔드포인트.",
-                "- 입력받은 username, email과 일치하는 user가 존재할 경우 user의 password를 랜덤한 숫자(100000~999999)로 변경시키고 email로 해당 숫자를 전송한다.",
-                "## [ Permission ]",
-                "- Anonymous",
-            ]
-        ),
-    )
     @action(
         detail=False,
         methods=["post"],
@@ -219,14 +218,8 @@ class UserViewSet(
         )
 
 
-class ProfileViewSet(
-    mixins.RetrieveModelMixin, dpm_mixins.PatchOnlyMixin, viewsets.GenericViewSet
-):
-    permission_classes = [ProfileViewSetPolicy]
-    queryset = accountapp_models.Profile.objects.all()
-    serializer_class = accountapp_serializers.ProfileSerializer
-
-    @extend_schema(
+@extend_schema_view(
+    retrieve=extend_schema(
         description="\n\n".join(
             [
                 "## [ Description ]",
@@ -235,11 +228,8 @@ class ProfileViewSet(
                 "- IsSelf",
             ]
         ),
-    )
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-    @extend_schema(
+    ),
+    partial_update=extend_schema(
         description="\n\n".join(
             [
                 "## [ Description ]",
@@ -248,6 +238,11 @@ class ProfileViewSet(
                 "- IsSelf",
             ]
         ),
-    )
-    def partial_update(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
+    ),
+)
+class ProfileViewSet(
+    mixins.RetrieveModelMixin, dpm_mixins.PatchOnlyMixin, viewsets.GenericViewSet
+):
+    permission_classes = [ProfileViewSetPolicy]
+    queryset = accountapp_models.Profile.objects.all()
+    serializer_class = accountapp_serializers.ProfileSerializer
