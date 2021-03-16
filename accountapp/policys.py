@@ -6,7 +6,7 @@ class UserViewSetAccessPolicy(AccessPolicy):
     statements = [
         {
             "principal": "*",
-            "action": ["<method:options>", "<method:head>", "active"],
+            "action": ["<method:options>", "<method:head>"],
             "effect": "allow",
         },
         {
@@ -27,7 +27,7 @@ class UserViewSetAccessPolicy(AccessPolicy):
         },
         {
             "principal": "anonymous",
-            "action": ["find_username", "find_password"],
+            "action": ["active", "find_username", "find_password"],
             "effect": "allow",
         },
     ]
