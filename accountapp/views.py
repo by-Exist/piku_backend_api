@@ -24,97 +24,7 @@ from .tasks import (
 )
 
 
-@extend_schema_view(
-    list=extend_schema(
-        description="\n\n".join(
-            [
-                "## [ Description ]",
-                "- Account List",
-                "## [ Permission ]",
-                "- AllowAny",
-            ]
-        ),
-        parameters=[
-            OpenApiParameter(
-                name="ordering",
-                examples=[
-                    OpenApiExample("", value=None),
-                    OpenApiExample("date_joined", value="date_joined"),
-                    OpenApiExample("-date_joined", value="-date_joined"),
-                    OpenApiExample("last_login", value="last_login"),
-                    OpenApiExample("-last_login", value="-last_login"),
-                ],
-            ),
-        ],
-    ),
-    create=extend_schema(
-        description="\n\n".join(
-            [
-                "## [ Description ]",
-                "- Account Create",
-                "## [ Permission ]",
-                "- Anonymous",
-            ]
-        )
-    ),
-    retrieve=extend_schema(
-        description="\n\n".join(
-            [
-                "## [ Description ]",
-                "- Account Retrieve",
-                "## [ Permission ]",
-                "- AllowAny",
-            ]
-        )
-    ),
-    password=extend_schema(
-        description="\n\n".join(
-            [
-                "## [ Description ]",
-                "- Password Change",
-                "- User가 자신의 비밀번호를 변경할 때 사용한다.",
-                "## [ Permission ]",
-                "- IsSelf",
-            ]
-        ),
-    ),
-    active=extend_schema(
-        description="\n\n".join(
-            [
-                "## [ Description ]",
-                "- Account Active",
-                "- 회원가입이 끝나면 해당 엔드포인트로 접근할 수 있는 url이 user의 이메일로 전송된다.",
-                "- url path 내의 token과 user id를 활용하여 해당 user의 is_active를 True로 변환한다.",
-                "## [ Permission ]",
-                "- Anonymous",
-            ]
-        ),
-    ),
-    find_username=extend_schema(
-        description="\n\n".join(
-            [
-                "## [ Description ]",
-                "- Find Username",
-                "- id(username)을 분실하였을 경우 사용되는 엔드포인트.",
-                "- 입력받은 email을 사용중인 user가 존재할 경우 해당 email로 username의 일부를 가린 문자열(user****)을 전송한다.",
-                "## [ Permission ]",
-                "- Anonymous",
-            ]
-        ),
-    ),
-    find_password=extend_schema(
-        description="\n\n".join(
-            [
-                "## [ Description ]",
-                "- Find Password",
-                "- password를 분실하였을 경우 사용되는 엔드포인트.",
-                "- 입력받은 username, email과 일치하는 user가 존재할 경우 user의 password를 랜덤한 숫자(100000~999999)로 변경시키고 email로 해당 숫자를 전송한다.",
-                "## [ Permission ]",
-                "- Anonymous",
-            ]
-        ),
-    ),
-)
+# TODO: User의 회원 탈퇴 기능 구현을 고민해야 한다. Delete로 퉁 칠 것인가? is_active를 False로 변환할 것인가?
 class UserViewSet(
     das_mixins.ActionSerializerMixin,
     mixins.ListModelMixin,
@@ -122,9 +32,6 @@ class UserViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
-    # TODO: Destroy 기능을 어떻게 제공할 것인가?
-    # User의 is_active를 False로 변경하는 것으로 만족할 것인가?
-    # User 계정의 완전한 제거 기능을 제공하는 것이 올바른가?
 
     queryset = get_user_model().objects.all().select_related("profile")
     serializer_class = accountapp_serializers.UserDetailSerializer
@@ -218,7 +125,112 @@ class UserViewSet(
         )
 
 
-@extend_schema_view(
+UserViewSet = extend_schema_view(
+    list=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Account List",
+                "## [ Permission ]",
+                "- AllowAny",
+            ]
+        ),
+        parameters=[
+            OpenApiParameter(
+                name="ordering",
+                examples=[
+                    OpenApiExample("--", value=None),
+                    *[
+                        OpenApiExample(f"asc {field_name}", value=f"{field_name}")
+                        for field_name in UserViewSet.ordering_fields
+                    ],
+                    *[
+                        OpenApiExample(f"desc {field_name}", value=f"-{field_name}")
+                        for field_name in UserViewSet.ordering_fields
+                    ],
+                ],
+            ),
+        ],
+    ),
+    create=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Account Create",
+                "## [ Permission ]",
+                "- Anonymous",
+            ]
+        )
+    ),
+    retrieve=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Account Retrieve",
+                "## [ Permission ]",
+                "- AllowAny",
+            ]
+        )
+    ),
+    password=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Password Change",
+                "- User가 자신의 비밀번호를 변경할 때 사용한다.",
+                "## [ Permission ]",
+                "- IsSelf",
+            ]
+        ),
+    ),
+    active=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Account Active",
+                "- 회원가입이 끝나면 해당 엔드포인트로 접근할 수 있는 url이 user의 이메일로 전송된다.",
+                "- url path 내의 token과 user id를 활용하여 해당 user의 is_active를 True로 변환한다.",
+                "## [ Permission ]",
+                "- Anonymous",
+            ]
+        ),
+    ),
+    find_username=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Find Username",
+                "- id(username)을 분실하였을 경우 사용되는 엔드포인트.",
+                "- 입력받은 email을 사용중인 user가 존재할 경우 해당 email로 username의 일부를 가린 문자열(user****)을 전송한다.",
+                "## [ Permission ]",
+                "- Anonymous",
+            ]
+        ),
+    ),
+    find_password=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Find Password",
+                "- password를 분실하였을 경우 사용되는 엔드포인트.",
+                "- 입력받은 username, email과 일치하는 user가 존재할 경우 user의 password를 랜덤한 숫자(100000~999999)로 변경시키고 email로 해당 숫자를 전송한다.",
+                "## [ Permission ]",
+                "- Anonymous",
+            ]
+        ),
+    ),
+)(UserViewSet)
+
+
+class ProfileViewSet(
+    mixins.RetrieveModelMixin, dpm_mixins.PatchOnlyMixin, viewsets.GenericViewSet
+):
+    permission_classes = [ProfileViewSetPolicy]
+    queryset = accountapp_models.Profile.objects.all()
+    serializer_class = accountapp_serializers.ProfileDetailSerializer
+
+
+ProfileViewSet = extend_schema_view(
     retrieve=extend_schema(
         description="\n\n".join(
             [
@@ -239,10 +251,4 @@ class UserViewSet(
             ]
         ),
     ),
-)
-class ProfileViewSet(
-    mixins.RetrieveModelMixin, dpm_mixins.PatchOnlyMixin, viewsets.GenericViewSet
-):
-    permission_classes = [ProfileViewSetPolicy]
-    queryset = accountapp_models.Profile.objects.all()
-    serializer_class = accountapp_serializers.ProfileDetailSerializer
+)(ProfileViewSet)
