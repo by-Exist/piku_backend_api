@@ -1,33 +1,27 @@
-from pickle import NONE
-from django.shortcuts import get_object_or_404
-from accountapp.tasks.email import (
-    send_mail_to_find_password,
-    send_mail_to_find_username,
-)
+import random
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from rest_framework import status, mixins, viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework_simplejwt import views as simplejwt_views
 from drf_spectacular.utils import (
     extend_schema_view,
     extend_schema,
     OpenApiParameter,
     OpenApiExample,
 )
-from drf_spectacular.types import OpenApiTypes
-from drf_action_serializer.mixins import ActionSerializerMixin
+from drf_action_serializer import mixins as das_mixins
 from backend.mixins import PatchOnlyMixin
-from accountapp import models as accountapp_models
-from accountapp import serializers as accountapp_serializers
-from accountapp.policys import ProfileViewSetPolicy, UserViewSetAccessPolicy
-from accountapp.tasks import (
+from . import models as accountapp_models
+from . import serializers as accountapp_serializers
+from .policys import ProfileViewSetPolicy, UserViewSetAccessPolicy
+from .tasks import (
     is_join_sended_token,
     send_mail_to_join_user,
     user_pk_urlsafe_decode,
+    send_mail_to_find_password,
+    send_mail_to_find_username,
 )
-import random
-
 
 # TODO: Response를 어떻게 작성하는지 모르겠다.
 @extend_schema_view(
@@ -47,15 +41,15 @@ import random
     ),
 )
 class UserViewSet(
-    ActionSerializerMixin,
+    das_mixins.ActionSerializerMixin,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
-    # TODO: User 계정의 완전한 제거 기능을 제공하는 것이 올바른가?
-    # is_active를 False로 변경하라는데?
-    # mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
+    # TODO: Destroy 기능을 어떻게 제공할 것인가?
+    # User의 is_active를 False로 변경하는 것으로 만족할 것인가?
+    # User 계정의 완전한 제거 기능을 제공하는 것이 올바른가?
 
     queryset = get_user_model().objects.all().select_related("profile")
     serializer_class = accountapp_serializers.UserDetailSerializer
@@ -158,19 +152,3 @@ class ProfileViewSet(
     permission_classes = [ProfileViewSetPolicy]
     queryset = accountapp_models.Profile.objects.all()
     serializer_class = accountapp_serializers.ProfileSerializer
-
-
-class DecoratedTokenObtainPairView(simplejwt_views.TokenObtainPairView):
-    # @extend_schema(
-    #     responses={200: accountapp_serializers.TokenObtainPairResponseSerializer}
-    # )
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
-
-
-class DecoratedTokenRefreshView(simplejwt_views.TokenRefreshView):
-    # @extend_schema(
-    #     responses={200: accountapp_serializers.TokenRefreshResponseSerializer}
-    # )
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
