@@ -18,11 +18,13 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Third apps
+    "django_filters",
     "drf_spectacular",
     "rest_framework",
     "polymorphic",
-    # Local apps
+    # Util apps
     "drf_action_serializer",
+    # Local apps
     "accountapp",
     "tokenapp",
     "worldcupapp",
