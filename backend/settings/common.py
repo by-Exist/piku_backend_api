@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     # Local apps
     "drf_action_serializer",
     "accountapp",
+    "tokenapp",
     # "reportapp",
     # "worldcupapp",
 ]
