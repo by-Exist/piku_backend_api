@@ -6,42 +6,42 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('worldcupapp', '0010_auto_20210310_0848'),
+        ("worldcupapp", "0010_auto_20210310_0848"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='basemedia',
-            name='worldcup',
+            model_name="basemedia",
+            name="worldcup",
         ),
         migrations.RemoveField(
-            model_name='comment',
-            name='media',
+            model_name="comment",
+            name="media",
         ),
         migrations.RemoveField(
-            model_name='comment',
-            name='worldcup',
+            model_name="comment",
+            name="worldcup",
         ),
         migrations.RemoveField(
-            model_name='comment',
-            name='writer',
+            model_name="comment",
+            name="writer",
         ),
         migrations.DeleteModel(
-            name='GifMedia',
+            name="GifMedia",
         ),
         migrations.DeleteModel(
-            name='ImageMedia',
+            name="ImageMedia",
         ),
         migrations.DeleteModel(
-            name='TextMedia',
+            name="TextMedia",
         ),
         migrations.DeleteModel(
-            name='VideoMedia',
+            name="VideoMedia",
         ),
         migrations.DeleteModel(
-            name='BaseMedia',
+            name="BaseMedia",
         ),
         migrations.DeleteModel(
-            name='Comment',
+            name="Comment",
         ),
     ]
