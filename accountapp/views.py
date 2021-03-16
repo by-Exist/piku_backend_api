@@ -45,35 +45,6 @@ import random
             ),
         ],
     ),
-    retrieve=extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="id",
-                type=OpenApiTypes.INT,
-                location=OpenApiParameter.PATH,
-                required=True,
-            ),
-        ],
-    ),
-    password=extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="id",
-                type=OpenApiTypes.INT,
-                location=OpenApiParameter.PATH,
-                required=True,
-            ),
-        ],
-    ),
-    active=extend_schema(
-        description="user의 is_active를 True로 변경하는 엔트포인트.\n\n해당 엔드포인트에 접근할 수 있는 url은 user 회원 가입시 이메일로 전송된다.\n\ntoken과 uidb64 값을 활용해 user를 인식한다."
-    ),
-    find_username=extend_schema(
-        description="user가 자신의 id(username)을 분실하였을 경우 사용되는 엔드포인트.\n\n입력받은 email을 사용중인 user가 존재할 경우 email로 username의 일부를 가린 문자열(user****)을 전송한다.",
-    ),
-    find_password=extend_schema(
-        description="user가 자신의 password를 분실하였을 경우 사용되는 엔드포인트.\n\n입력받은 username, email과 일치하는 user가 존재할 경우 user의 password를 랜덤한 숫자로 변경시키고 email로 해당 숫자를 전송한다.",
-    ),
 )
 class UserViewSet(
     ActionSerializerMixin,
@@ -128,7 +99,9 @@ class UserViewSet(
         detail=False, methods=["get"], url_path="active/(?P<uidb64>.+)/(?P<token>.+)"
     )
     def active(self, request, **kwargs):
-        # 회원가입 시 이메일로 전송된 url로 전송하면 is_active를 True로 변경한다.
+        """user의 is_active를 True로 변경하는 엔트포인트.\n
+        해당 엔드포인트에 접근할 수 있는 url은 user 회원 가입시 이메일로 전송된다.\n
+        token과 uidb64 값을 활용해 user를 인식한다."""
         user_pk = user_pk_urlsafe_decode(kwargs["uidb64"])
         token = kwargs["token"]
         user = get_object_or_404(self.get_queryset(), pk=user_pk)
@@ -146,7 +119,8 @@ class UserViewSet(
         url_path="help/username",
     )
     def find_username(self, request, show_length=4, **kwargs):
-        # email로 username의 힌트를 전송한다.
+        """user가 자신의 id(username)을 분실하였을 경우 사용되는 엔드포인트.\n
+        입력받은 email을 사용중인 user가 존재할 경우 email로 username의 일부를 가린 문자열(user****)을 전송한다."""
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             email = serializer.validated_data["email"]
@@ -163,7 +137,8 @@ class UserViewSet(
         url_path="help/password",
     )
     def find_password(self, request, show_length=4, **kwargs):
-        # email로 변경된 password를 전송한다.
+        """user가 자신의 password를 분실하였을 경우 사용되는 엔드포인트.\n
+        입력받은 username, email과 일치하는 user가 존재할 경우 user의 password를 랜덤한 숫자로 변경시키고 email로 해당 숫자를 전송한다."""
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             username = serializer.validated_data["username"]
