@@ -1,5 +1,4 @@
 from django.db import models
-from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core.validators import MinLengthValidator
 
@@ -40,6 +39,3 @@ class Worldcup(models.Model):
     play_count = models.PositiveIntegerField(
         "플레이 완료 횟수", blank=True, default=0, editable=False
     )
-
-    def get_absolute_url(self):
-        return reverse("worldcup-detail", args=[self.id])

@@ -4,41 +4,33 @@ from accountapp.serializers import UserListSerializer
 from ..models import Worldcup
 
 
-# Worldcup Serializer
-class ThumbnailListSerializer(serializers.ListSerializer):
-    """두 개의 미디어만 추출하도록 제한"""
-
-    def to_representation(self, data):
-        iterable = data.all()[:2] if isinstance(data, models.Manager) else data
-        return [self.child.to_representation(item) for item in iterable]
+# class InnerThumbnailListSerializer(serializers.ListSerializer):
+#     def to_representation(self, data):
+#         iterable = data.all()[:2] if isinstance(data, models.Manager) else data
+#         return [self.child.to_representation(item) for item in iterable]
 
 
-class MediaBodyField(serializers.CharField):
-    def to_representation(self, value):
-        if value.worldcup.media_type in ["I", "G"]:
-            return value.body.url
-        else:
-            return value.body
+# # TODO: 미디어를 작업한 다음에 해야겠구만.
+# class InnerMediaBodyField(serializers.CharField):
+#     def to_representation(self, value):
+#         if value.worldcup.media_type in ["Image", "Gif"]:
+#             return value.body.url
+#         else:
+#             return value.body
 
 
-class WorldcupSerializer(serializers.HyperlinkedModelSerializer):
+class WorldcupDetailSerializer(serializers.HyperlinkedModelSerializer):
 
     creator = UserListSerializer(read_only=True)
-    thumbnail = ThumbnailListSerializer(
-        read_only=True, child=MediaBodyField(), source="media_set"
-    )
-    media_list = serializers.HyperlinkedIdentityField(
-        view_name="media-list", lookup_url_kwarg="worldcup_pk"
-    )
-    comment_list = serializers.HyperlinkedIdentityField(
-        view_name="comment-list", lookup_url_kwarg="worldcup_pk"
-    )
+    # thumbnail = InnerThumbnailListSerializer(
+    #     read_only=True, child=InnerMediaBodyField(), source="media_set"
+    # )
 
     class Meta:
         model = Worldcup
         fields = (
             "id",
-            "thumbnail",
+            # "thumbnail",
             "title",
             "subtitle",
             "media_type",
@@ -48,8 +40,6 @@ class WorldcupSerializer(serializers.HyperlinkedModelSerializer):
             "created_at",
             "updated_at",
             "creator",
-            "media_list",
-            "comment_list",
         )
         extra_kwargs = {
             "creator": {"read_only": True},
@@ -60,16 +50,16 @@ class WorldcupSerializer(serializers.HyperlinkedModelSerializer):
 class WorldcupListSerializer(serializers.HyperlinkedModelSerializer):
 
     creator = UserListSerializer(read_only=True)
-    thumbnail = ThumbnailListSerializer(
-        read_only=True, child=MediaBodyField(), source="media_set"
-    )
+    # thumbnail = InnerThumbnailListSerializer(
+    #     read_only=True, child=InnerMediaBodyField(), source="media_set"
+    # )
 
     class Meta:
         model = Worldcup
         fields = (
             "id",
             "url",
-            "thumbnail",
+            # "thumbnail",
             "title",
             "subtitle",
             "media_type",
