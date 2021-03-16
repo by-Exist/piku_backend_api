@@ -11,7 +11,7 @@ from drf_spectacular.utils import (
     OpenApiExample,
 )
 from drf_action_serializer import mixins as das_mixins
-from backend.mixins import PatchOnlyMixin
+from drf_patchonly_mixin import mixins as dpm_mixins
 from . import models as accountapp_models
 from . import serializers as accountapp_serializers
 from .policys import ProfileViewSetPolicy, UserViewSetAccessPolicy
@@ -78,7 +78,7 @@ class UserViewSet(
 
     @action(detail=True, methods=["put"])
     def password(self, request, pk=None):
-        # 유저가 자신의 password를 변경하는데에 사용된다.
+        """user가 자기 자신의 password를 변경하는 엔트포인트."""
         user = self.get_object()
         serializer = self.get_serializer_class()(
             data=request.data, context=self.get_serializer_context()
@@ -147,7 +147,7 @@ class UserViewSet(
 
 
 class ProfileViewSet(
-    mixins.RetrieveModelMixin, PatchOnlyMixin, viewsets.GenericViewSet
+    mixins.RetrieveModelMixin, dpm_mixins.PatchOnlyMixin, viewsets.GenericViewSet
 ):
     permission_classes = [ProfileViewSetPolicy]
     queryset = accountapp_models.Profile.objects.all()
