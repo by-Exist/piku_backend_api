@@ -1,13 +1,15 @@
-from django.conf import settings
 from rest_framework_nested.routers import SimpleRouter, NestedSimpleRouter
-from worldcupapp.views import MediaViewSet, WorldcupViewSet, CommentViewSet
+from worldcupapp.views import WorldcupViewSet  # CommentViewSet, MediaViewSet
 
 
 router = SimpleRouter()
 
 router.register("worldcups", WorldcupViewSet, "worldcup")
-worldcup_router = NestedSimpleRouter(router, "worldcups", lookup="worldcup")
-worldcup_router.register("medias", MediaViewSet, "media")
-worldcup_router.register("comments", CommentViewSet, "comment")
+# worldcup_router = NestedSimpleRouter(router, "worldcups", lookup="worldcup")
+# worldcup_router.register("medias", MediaViewSet, "media")
+# worldcup_router.register("comments", CommentViewSet, "comment")
 
-urlpatterns = [*router.urls, *worldcup_router.urls]
+urlpatterns = [
+    *router.urls,
+    # *worldcup_router.urls,
+]

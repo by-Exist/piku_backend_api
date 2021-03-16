@@ -3,8 +3,6 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core.validators import MinLengthValidator
 
-User = get_user_model()
-
 
 class Worldcup(models.Model):
     class MediaType(models.TextChoices):
@@ -18,7 +16,9 @@ class Worldcup(models.Model):
         PRIVATE = "PRIVATE", "비공개"
         PASSWORD = "PASSWORD", "암호"
 
-    creator = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="작성자")
+    creator = models.ForeignKey(
+        get_user_model(), on_delete=models.CASCADE, verbose_name="작성자"
+    )
     title = models.CharField(
         "제목", max_length=63, validators=[MinLengthValidator(3, "세 글자 이상 입력해주세요.")]
     )
@@ -45,95 +45,99 @@ class Worldcup(models.Model):
         return reverse("worldcup-detail", args=[self.id])
 
 
-# 테이블을 만드는 용도로 사용되며, 직접적으로 활용되지는 않음
-class BaseMedia(models.Model):
-    worldcup = models.ForeignKey(
-        Worldcup, on_delete=models.CASCADE, verbose_name="월드컵", related_name="media_set"
-    )
-    title = models.CharField("제목", max_length=31)
-    body = models.CharField("미디어", max_length=511)
-    win_count = models.PositiveIntegerField(
-        "승리 횟수", blank=True, default=0, editable=False
-    )
-    choice_count = models.PositiveIntegerField(
-        "1:1 선택 횟수", blank=True, default=0, editable=False
-    )
+# # 테이블을 만드는 용도로 사용되며, 직접적으로 활용되지는 않음
+# class BaseMedia(models.Model):
+#     worldcup = models.ForeignKey(
+#         Worldcup, on_delete=models.CASCADE, verbose_name="월드컵", related_name="media_set"
+#     )
+#     title = models.CharField("제목", max_length=31)
+#     body = models.CharField("미디어", max_length=511)
+#     win_count = models.PositiveIntegerField(
+#         "승리 횟수", blank=True, default=0, editable=False
+#     )
+#     choice_count = models.PositiveIntegerField(
+#         "1:1 선택 횟수", blank=True, default=0, editable=False
+#     )
 
-    def get_absolute_url(self):
-        return reverse("media-detail", args=[self.worldcup.pk, self.id])
+#     def get_absolute_url(self):
+#         return reverse("media-detail", args=[self.worldcup.pk, self.id])
 
-    class Meta:
-        db_table = "Medias"
-
-
-class AbstractMedia(models.Model):
-    worldcup = models.ForeignKey(Worldcup, on_delete=models.CASCADE, verbose_name="월드컵")
-    title = models.CharField("제목", max_length=31)
-    win_count = models.PositiveIntegerField(
-        "승리 횟수", blank=True, default=0, editable=False
-    )
-    choice_count = models.PositiveIntegerField(
-        "1:1 선택 횟수", blank=True, default=0, editable=False
-    )
-
-    class Meta:
-        abstract = True
+#     class Meta:
+#         db_table = "Medias"
 
 
-class TextMedia(AbstractMedia):
-    body = models.CharField("Text 미디어", max_length=511)
+# class AbstractMedia(models.Model):
+#     worldcup = models.ForeignKey(Worldcup, on_delete=models.CASCADE, verbose_name="월드컵")
+#     title = models.CharField("제목", max_length=31)
+#     win_count = models.PositiveIntegerField(
+#         "승리 횟수", blank=True, default=0, editable=False
+#     )
+#     choice_count = models.PositiveIntegerField(
+#         "1:1 선택 횟수", blank=True, default=0, editable=False
+#     )
 
-    class Meta:
-        db_table = "Medias"
-        managed = False
-
-
-class ImageMedia(AbstractMedia):
-    body = models.ImageField(
-        "Image 미디어", upload_to="worldcupapp/imagemedia/%Y/%m/%d/%H"
-    )
-
-    class Meta:
-        db_table = "Medias"
-        managed = False
+#     class Meta:
+#         abstract = True
 
 
-class GifMedia(AbstractMedia):
-    body = models.ImageField("Gif 미디어", upload_to="worldcupapp/gifmedia/%Y/%m/%d/%H")
+# class TextMedia(AbstractMedia):
+#     body = models.CharField("Text 미디어", max_length=511)
 
-    class Meta:
-        db_table = "Medias"
-        managed = False
-
-
-class VideoMedia(AbstractMedia):
-    body = models.CharField("Video 미디어", max_length=255)
-
-    class Meta:
-        db_table = "Medias"
-        managed = False
+#     class Meta:
+#         db_table = "Medias"
+#         managed = False
 
 
-class Comment(models.Model):
-    writer = models.ForeignKey(
-        User, null=True, blank=True, on_delete=models.CASCADE, verbose_name="작성자"
-    )
-    anonymous_nickname = models.CharField(
-        "익명 닉네임",
-        default="익명",
-        max_length=13,
-    )
-    anonymous_password = models.CharField(
-        "익명 패스워드",
-        max_length=15,
-    )
-    worldcup = models.ForeignKey(Worldcup, on_delete=models.CASCADE, verbose_name="월드컵")
-    media = models.ForeignKey(
-        BaseMedia, null=True, blank=True, on_delete=models.CASCADE, verbose_name="미디어"
-    )
-    comment = models.CharField("댓글 내용", max_length=511)
-    created_at = models.DateTimeField("작성시각", auto_now_add=True)
-    updated_at = models.DateTimeField("수정시각", auto_now=True)
+# class ImageMedia(AbstractMedia):
+#     body = models.ImageField(
+#         "Image 미디어", upload_to="worldcupapp/imagemedia/%Y/%m/%d/%H"
+#     )
 
-    def get_absolute_url(self):
-        return reverse("comment-detail", args=[self.worldcup.pk, self.id])
+#     class Meta:
+#         db_table = "Medias"
+#         managed = False
+
+
+# class GifMedia(AbstractMedia):
+#     body = models.ImageField("Gif 미디어", upload_to="worldcupapp/gifmedia/%Y/%m/%d/%H")
+
+#     class Meta:
+#         db_table = "Medias"
+#         managed = False
+
+
+# class VideoMedia(AbstractMedia):
+#     body = models.CharField("Video 미디어", max_length=255)
+
+#     class Meta:
+#         db_table = "Medias"
+#         managed = False
+
+
+# class Comment(models.Model):
+#     writer = models.ForeignKey(
+#         get_user_model(),
+#         null=True,
+#         blank=True,
+#         on_delete=models.CASCADE,
+#         verbose_name="작성자",
+#     )
+#     anonymous_nickname = models.CharField(
+#         "익명 닉네임",
+#         default="익명",
+#         max_length=13,
+#     )
+#     anonymous_password = models.CharField(
+#         "익명 패스워드",
+#         max_length=15,
+#     )
+#     worldcup = models.ForeignKey(Worldcup, on_delete=models.CASCADE, verbose_name="월드컵")
+#     media = models.ForeignKey(
+#         BaseMedia, null=True, blank=True, on_delete=models.CASCADE, verbose_name="미디어"
+#     )
+#     comment = models.CharField("댓글 내용", max_length=511)
+#     created_at = models.DateTimeField("작성시각", auto_now_add=True)
+#     updated_at = models.DateTimeField("수정시각", auto_now=True)
+
+#     def get_absolute_url(self):
+#         return reverse("comment-detail", args=[self.worldcup.pk, self.id])
