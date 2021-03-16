@@ -1,11 +1,14 @@
-from django.contrib.auth.models import AbstractUser, UserManager, Group, Permission
-from django.db import models, transaction
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.validators import MinLengthValidator, MaxLengthValidator
-from accountapp import models as accountapp_models
-from accountapp.validators import (
+from django.db import models, transaction
+from . import models as accountapp_models
+from .validators import (
     CustomASCIIUsernameValidator,
     CustomUnicodeNicknameValidator,
 )
+
+
+# TODO: 추후 auth를 잘 다룰 수 있게 되면, Group과 Permission에 대한 엔드포인트도 다루어야 할 지도 모르겠다.
 
 
 class CustomUserManager(UserManager):
