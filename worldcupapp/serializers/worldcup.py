@@ -36,6 +36,7 @@ class WorldcupDetailSerializer(serializers.HyperlinkedModelSerializer):
             "media_type",
             "publish_type",
             "password",
+            "view_count",
             "play_count",
             "created_at",
             "updated_at",
@@ -75,3 +76,8 @@ class WorldcupListSerializer(serializers.HyperlinkedModelSerializer):
     def create(self, validated_data):
         validated_data |= {"creator": self.context["view"].request.user}
         return super().create(validated_data)
+
+
+class NoBodyPostSerializer(serializers.Serializer):
+
+    pass

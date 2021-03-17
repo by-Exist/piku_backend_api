@@ -39,3 +39,6 @@ class Worldcup(models.Model):
     play_count = models.PositiveIntegerField(
         "플레이 완료 횟수", blank=True, default=0, editable=False
     )
+    view_count = models.PositiveIntegerField(
+        "실행 횟수", blank=True, default=0, editable=False
+    )

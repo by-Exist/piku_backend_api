@@ -1,5 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, mixins, filters
+from rest_framework import viewsets, mixins, filters, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from drf_spectacular.utils import (
     extend_schema_view,
     extend_schema,
@@ -10,7 +12,11 @@ from drf_spectacular.types import OpenApiTypes
 from drf_patchonly_mixin import mixins as dpm_mixins
 from ..models import Worldcup
 from ..policys import WorldcupViewSetAccessPolicy
-from ..serializers import WorldcupDetailSerializer, WorldcupListSerializer
+from ..serializers import (
+    WorldcupDetailSerializer,
+    WorldcupListSerializer,
+    NoBodyPostSerializer,
+)
 
 
 class WorldcupViewSet(
@@ -27,6 +33,8 @@ class WorldcupViewSet(
     serializer_action_class = {
         "list": WorldcupListSerializer,
         "create": WorldcupListSerializer,
+        "play_counts": NoBodyPostSerializer,
+        "view_counts": NoBodyPostSerializer,
     }
 
     filter_backends = [
@@ -37,6 +45,22 @@ class WorldcupViewSet(
     filterset_fields = ["media_type", "publish_type"]
     search_fields = ["title", "subtitle"]
     ordering_fields = ["created_at", "play_count"]
+
+    # TODO: 캐싱 동작을 구현하여, 응답을 202와 204로 분리하자.
+    @action(methods=["post"], detail=True)
+    def view_counts(self, request, **kwargs):
+        worldcup = self.get_object()
+        worldcup.view_count += 1
+        worldcup.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    # TODO: 캐싱 동작을 구현하여, 응답을 202와 204로 분리하자.
+    @action(methods=["post"], detail=True)
+    def play_counts(self, request, **kwargs):
+        worldcup = self.get_object()
+        worldcup.play_count += 1
+        worldcup.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_serializer_class(self):
         serializer_cls = self.serializer_action_class.get(self.action, None)
@@ -113,5 +137,27 @@ WorldcupViewSet = extend_schema_view(
                 "- IsCreator",
             ]
         )
+    ),
+    play_counts=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Worldcup Play Counts +1",
+                "## [ Permission ]",
+                "- AllowAny",
+            ]
+        ),
+        responses={204: NoBodyPostSerializer},
+    ),
+    view_counts=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Worldcup View Counts +1",
+                "## [ Permission ]",
+                "- AllowAny",
+            ]
+        ),
+        responses={204: NoBodyPostSerializer},
     ),
 )(WorldcupViewSet)
