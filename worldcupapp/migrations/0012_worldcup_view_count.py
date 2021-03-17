@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('worldcupapp', '0011_auto_20210316_1014'),
+        ("worldcupapp", "0011_auto_20210316_1014"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='worldcup',
-            name='view_count',
-            field=models.PositiveIntegerField(blank=True, default=0, editable=False, verbose_name='실행 횟수'),
+            model_name="worldcup",
+            name="view_count",
+            field=models.PositiveIntegerField(
+                blank=True, default=0, editable=False, verbose_name="실행 횟수"
+            ),
         ),
     ]

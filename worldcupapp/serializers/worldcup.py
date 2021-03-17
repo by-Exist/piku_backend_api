@@ -47,6 +47,16 @@ class WorldcupDetailSerializer(serializers.HyperlinkedModelSerializer):
             "password": {"write_only": True},
         }
 
+    def validate_publish_type(self, publish_type):
+        if publish_type in (
+            Worldcup.PublishType.PUBLIC.value,
+            Worldcup.PublishType.PASSWORD.value,
+        ):
+            if not self.context["view"].get_object().media_set.count() >= 2:
+                return publish_type
+            raise serializers.ValidationError("최소 2개 이상의 media를 업로드 해 주세요.")
+        return publish_type
+
 
 class WorldcupListSerializer(serializers.HyperlinkedModelSerializer):
 
