@@ -30,13 +30,18 @@ class MediaListSerializer(serializers.ModelSerializer):
             "body",
         ]
 
+    def create(self, validated_data):
+        worldcup = self.context["view"].parent_object
+        validated_data |= {"worldcup": worldcup}
+        return super().create(validated_data)
+
 
 class TextMediaDetailSerializer(serializers.ModelSerializer):
     class Meta(MediaDetailSerializer.Meta):
         model = TextMedia
 
 
-class TextMediaListSerializer(serializers.ModelSerializer):
+class TextMediaListSerializer(MediaListSerializer):
     class Meta(MediaListSerializer.Meta):
         model = TextMedia
 
@@ -46,7 +51,7 @@ class ImageMediaDetailSerializer(serializers.ModelSerializer):
         model = ImageMedia
 
 
-class ImageMediaListSerializer(serializers.ModelSerializer):
+class ImageMediaListSerializer(MediaListSerializer):
     class Meta(MediaListSerializer.Meta):
         model = ImageMedia
 
@@ -56,7 +61,7 @@ class GifMediaDetailSerializer(serializers.ModelSerializer):
         model = GifMedia
 
 
-class GifMediaListSerializer(serializers.ModelSerializer):
+class GifMediaListSerializer(MediaListSerializer):
     class Meta(MediaListSerializer.Meta):
         model = GifMedia
 
@@ -66,7 +71,7 @@ class VideoMediaDetailSerializer(serializers.ModelSerializer):
         model = VideoMedia
 
 
-class VideoMediaListSerializer(serializers.ModelSerializer):
+class VideoMediaListSerializer(MediaListSerializer):
     class Meta(MediaListSerializer.Meta):
         model = VideoMedia
 
@@ -118,12 +123,3 @@ class MediaListPolymorphicSerializer(PolymorphicSerializer):
     # request의 body에서 추출하던 resource_type을 worldcup의 media_type에서 가져오도록 수정
     def _get_resource_type_from_mapping(self, mapping):
         return self.resource_type_mapping[self.context["view"].parent_object.media_type]
-
-    def validate(self, attrs):
-        assert self.context["view"].parent_object
-        return attrs
-
-    def create(self, validated_data):
-        worldcup = self.context["view"].parent_object
-        validated_data |= {"worldcup": worldcup}
-        return super().create(validated_data)
