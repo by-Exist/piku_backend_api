@@ -20,7 +20,7 @@ class ThumbnailListSerializerCharField(serializers.CharField):
             return body
 
 
-class WorldcupDetailSerializer(serializers.HyperlinkedModelSerializer):
+class WorldcupDetailSerializer(serializers.ModelSerializer):
 
     creator = UserListSerializer(read_only=True)
     thumbnail = ThumbnailListSerializer(

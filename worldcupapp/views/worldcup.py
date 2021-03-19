@@ -1,3 +1,4 @@
+from django.db.models import F
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, filters, status
 from rest_framework.decorators import action
@@ -50,7 +51,7 @@ class WorldcupViewSet(
     @action(methods=["post"], detail=True)
     def view_counts(self, request, **kwargs):
         worldcup = self.get_object()
-        worldcup.view_count += 1
+        worldcup.view_count = F("view_count") + 1
         worldcup.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -58,7 +59,7 @@ class WorldcupViewSet(
     @action(methods=["post"], detail=True)
     def play_counts(self, request, **kwargs):
         worldcup = self.get_object()
-        worldcup.play_count += 1
+        worldcup.play_count = F("play_count") + 1
         worldcup.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
