@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework_nested.relations import NestedHyperlinkedIdentityField
 from ..models import Media, TextMedia, ImageMedia, GifMedia, VideoMedia
 
 
@@ -15,15 +16,18 @@ class MediaDetailSerializer(serializers.ModelSerializer):
         ]
 
 
-class MediaListSerializer(serializers.ModelSerializer):
+class MediaListSerializer(serializers.HyperlinkedModelSerializer):
 
-    # TODO: Nested URL 구현
+    url = NestedHyperlinkedIdentityField(
+        view_name="media-detail",
+        parent_lookup_kwargs={"worldcup_pk": "worldcup__pk"},
+    )
 
     class Meta:
         model = Media
         fields = [
             "id",
-            # "url",
+            "url",
             "title",
             "body",
         ]
