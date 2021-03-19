@@ -13,15 +13,12 @@ from django.utils.functional import cached_property
 from worldcupapp.models.worldcup import Worldcup
 from rest_framework import mixins, viewsets
 from drf_spectacular.utils import (
+    PolymorphicProxySerializer,
     extend_schema_view,
     extend_schema,
 )
 from drf_patchonly_mixin import mixins as dpm_mixins
 from ..models import Media
-from ..serializers import (
-    MediaDetailPolymorphicSerializer,
-    MediaListPolymorphicSerializer,
-)
 from ..policys import MediaViewSetAccessPolicy
 
 
@@ -33,8 +30,6 @@ class MediaViewSet(
     viewsets.GenericViewSet,
 ):
 
-    serializer_class = MediaDetailPolymorphicSerializer
-    type_serializer_class = {""}
     detail_serializer_class = {
         "Text": TextMediaDetailSerializer,
         "Image": ImageMediaDetailSerializer,
@@ -62,6 +57,28 @@ class MediaViewSet(
         return get_object_or_404(Worldcup, pk=self.kwargs["worldcup_pk"])
 
 
+MediaListPolymorphicSerializer = PolymorphicProxySerializer(
+    component_name="MediaListPolymorphic",
+    serializers=[
+        TextMediaListSerializer,
+        ImageMediaListSerializer,
+        GifMediaListSerializer,
+        VideoMediaListSerializer,
+    ],
+    resource_type_field_name=None,
+)
+MediaDetailPolymorphicSerializer = PolymorphicProxySerializer(
+    component_name="MediaDetailPolymorphic",
+    serializers=[
+        TextMediaDetailSerializer,
+        ImageMediaDetailSerializer,
+        GifMediaDetailSerializer,
+        VideoMediaDetailSerializer,
+    ],
+    resource_type_field_name=None,
+)
+
+
 MediaViewSet = extend_schema_view(
     list=extend_schema(
         description="\n\n".join(
@@ -72,7 +89,6 @@ MediaViewSet = extend_schema_view(
                 "- AllowAny",
             ]
         ),
-        request=MediaListPolymorphicSerializer,
         responses=MediaListPolymorphicSerializer,
     ),
     create=extend_schema(
@@ -96,8 +112,8 @@ MediaViewSet = extend_schema_view(
                 "- IsWorldcupCreator",
             ]
         ),
-        request=MediaListPolymorphicSerializer,
-        responses=MediaListPolymorphicSerializer,
+        request=MediaDetailPolymorphicSerializer,
+        responses=MediaDetailPolymorphicSerializer,
     ),
     destroy=extend_schema(
         description="\n\n".join(
@@ -108,7 +124,5 @@ MediaViewSet = extend_schema_view(
                 "- IsWorldcupCreator",
             ]
         ),
-        request=MediaListPolymorphicSerializer,
-        responses=MediaListPolymorphicSerializer,
     ),
 )(MediaViewSet)
