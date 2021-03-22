@@ -1,140 +1,65 @@
-from django.db import models
 from rest_framework import serializers
-from accountapp.serializers import UserListSerializer
-
-# from rest_framework_nested.relations import NestedHyperlinkedRelatedField
-
-
-# # Comment Serializer
-# class AuthenticatedUserCommentPasswordSerializer(serializers.Serializer):
-
-#     pass
+from rest_framework_nested.serializers import NestedHyperlinkedIdentityField
+from ..models import AuthUserComment
 
 
-# class AnonymousUserCommentPasswordSerializer(serializers.Serializer):
-
-#     password = serializers.CharField(
-#         style={"input_type": "password", "placeholder": "Password"},
-#     )
-
-
-# class CommentSerializer(serializers.HyperlinkedModelSerializer):
-
-#     writer = UserListSerializer(read_only=True)
-#     media = MediaListSerializer(read_only=True)
-
-#     class Meta:
-#         model = worldcupapp_models.Comment
-#         fields = (
-#             "id",
-#             "comment",
-#             "writer",
-#             "media",
-#             "created_at",
-#             "updated_at",
-#         )
-#         extra_kwargs = {
-#             "writer": {"read_only": True},
-#             "worldcup": {"read_only": True},
-#         }
+class AuthUserCommentDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AuthUserComment
+        fields = [
+            "id",
+            "writer",
+            "media",
+            "body",
+            "created_at",
+            "updated_at",
+        ]
+        extra_kwargs = {
+            "writer": {"read_only": True},
+            "media": {"read_only": True},
+        }
 
 
-# class CommentListSerializer(serializers.HyperlinkedModelSerializer):
+class AuthUserCommentListSerializer(serializers.ModelSerializer):
 
-#     url = NestedHyperlinkedRelatedField(
-#         read_only=True,
-#         view_name="media-detail",
-#         parent_lookup_kwargs={"worldcup_pk": "worldcup__pk"},
-#     )
-#     writer = UserListSerializer(read_only=True)
-#     media = MediaListSerializer(read_only=True)
-#     media_id = serializers.IntegerField(write_only=True, allow_null=True)
+    media_id = serializers.CharField(write_only=True, required=False, allow_null=True)
+    url = NestedHyperlinkedIdentityField(
+        view_name="comment-detail",
+        parent_lookup_kwargs={"worldcup_pk": "worldcup__pk"},
+    )
 
-#     class Meta:
-#         model = worldcupapp_models.Comment
-#         fields = (
-#             "id",
-#             "url",
-#             "writer",
-#             "anonymous_nickname",
-#             "comment",
-#             "worldcup",
-#             "media",
-#             "media_id",
-#             "created_at",
-#             "updated_at",
-#         )
-#         extra_kwargs = {
-#             "writer": {"read_only": True},
-#             "worldcup": {"read_only": True},
-#             "anonymous_nickname": {"read_only": True},
-#         }
+    class Meta:
+        model = AuthUserComment
+        fields = [
+            "id",
+            "url",
+            "media_id",
+            "writer",
+            "media",
+            "body",
+            "created_at",
+            "updated_at",
+        ]
+        extra_kwargs = {
+            "writer": {"read_only": True},
+            "media": {"read_only": True},
+        }
 
-#     def create(self, validated_data):
-#         user = self.context["request"].user
-#         worldcup = worldcupapp_models.Worldcup.objects.get(
-#             pk=self.context["view"].kwargs["worldcup_pk"]
-#         )
-#         validated_data |= {
-#             "writer": user,
-#             "worldcup": worldcup,
-#             "anonymous_nickname": "",
-#         }
-#         media_id = validated_data.get("media_id")
-#         if media_id:
-#             media = worldcupapp_models.BaseMedia.objects.get(pk=media_id)
-#             validated_data |= {"media": media}
-#         return super().create(validated_data)
+    def validate_media_id(self, media_id):
+        if not media_id:
+            return media_id
+        media_set = self.context["view"].parent_object.media_set
+        if media_id and (not media_set.filter(pk=media_id).exists()):
+            raise serializers.ValidationError("월드컵에 해당 미디어가 존재하지 않습니다.")
+        return media_id
 
-
-# class AnonymouseCommentUpdateSerializer(serializers.ModelSerializer):
-
-#     check_password = serializers.CharField(
-#         write_only=True,
-#         style={"input_type": "password", "placeholder": "Password"},
-#     )
-#     media_id = serializers.IntegerField(write_only=True, allow_null=True)
-
-#     class Meta:
-#         model = worldcupapp_models.Comment
-#         fields = (
-#             "check_password",
-#             "comment",
-#             "media_id",
-#         )
-
-#     def update(self, instance, validated_data):
-#         if "check_password" in validated_data:
-#             validated_data.pop("check_password")
-#         return super().update(instance, validated_data)
-
-
-# class AnonymouseCommentCreateSerializer(serializers.ModelSerializer):
-
-#     media_id = serializers.IntegerField(write_only=True, allow_null=True)
-
-#     class Meta:
-#         model = worldcupapp_models.Comment
-#         fields = (
-#             "anonymous_nickname",
-#             "anonymous_password",
-#             "comment",
-#             "media_id",
-#         )
-#         extra_kwargs = {
-#             "anonymous_password": {
-#                 "write_only": True,
-#                 "style": {"input_type": "password", "placeholder": "Password"},
-#             },
-#         }
-
-#     def create(self, validated_data):
-#         worldcup = worldcupapp_models.Worldcup.objects.get(
-#             pk=self.context["view"].kwargs["worldcup_pk"]
-#         )
-#         validated_data |= {"writer": None, "worldcup": worldcup}
-#         media_id = validated_data.get("media_id", None)
-#         if media_id:
-#             media = worldcupapp_models.BaseMedia.objects.get(pk=media_id)
-#             validated_data |= {"media": media}
-#         return super().create(validated_data)
+    def create(self, validated_data):
+        validated_data |= {
+            "writer": self.context["request"].user,
+            "worldcup": self.context["view"].parent_object,
+        }
+        media_id = validated_data.pop("media_id", None)
+        if media_id:
+            media = self.context["view"].parent_object.media_set.get(pk=media_id)
+            validated_data |= {"media": media}
+        return super().create(validated_data)
