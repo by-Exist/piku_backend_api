@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     "accountapp",
     "tokenapp",
     "worldcupapp",
-    # "reportapp",
+    "reportapp",
 ]
 
 MIDDLEWARE = [

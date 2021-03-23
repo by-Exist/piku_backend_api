@@ -1,16 +1,10 @@
-from worldcupapp.models import BaseMedia, Comment, Worldcup
+from worldcupapp.models import Worldcup, Media, Comment
 from django.db import models
 from django.contrib.auth import get_user_model
+from polymorphic.models import PolymorphicModel
 
 
-# Report Model
-class AbstractReport(models.Model):
-    class CommonReason(models.TextChoices):
-        ADULT = "Sex", "성적 요소가 포함되어 있습니다."
-        HATE = "Hate", "증오/혐오 등의 내용이 포함되어 있습니다."
-        SPAM = "Spam", "스팸 및 광고성 내용이 포함되어 있습니다."
-        CHILD_ABUSE = "Child", "아동학대 관련 내용이 포함되어 있습니다."
-        OTHER = "Other", "기타"
+class Report(PolymorphicModel):
 
     reporter = models.ForeignKey(
         get_user_model(),
@@ -19,32 +13,48 @@ class AbstractReport(models.Model):
         on_delete=models.SET_NULL,
         verbose_name="신고자",
     )
-    reason = models.CharField("신고 사유", max_length=15, choices=CommonReason.choices)
     body = models.CharField("신고 내용", blank=True, max_length=511)
     image = models.ImageField(
         "증빙 사진", blank=True, upload_to="reportapp/report/%Y/%m/%d"
     )
     created_at = models.DateTimeField("작성일", auto_now_add=True)
 
-    class Meta:
-        abstract = True
 
+class UserReport(Report):
+    class Reason(models.TextChoices):
+        USEREXAMPLE = "USEREXAMPLE", "유저 신고 사유 예제"
 
-class UserReport(AbstractReport):
     reported = models.ForeignKey(
-        get_user_model(), on_delete=models.CASCADE, verbose_name="유저", related_name="+"
+        get_user_model(), on_delete=models.CASCADE, verbose_name="신고된 유저"
     )
+    reason = models.CharField("신고 사유", max_length=15, choices=Reason.choices)
 
 
-class WorldcupReport(AbstractReport):
-    reported = models.ForeignKey(Worldcup, on_delete=models.CASCADE, verbose_name="월드컵")
+class WorldcupReport(Report):
+    class Reason(models.TextChoices):
+        WORLDCUPEXAMPLE = "WORLDCUPEXAMPLE", "월드컵 신고 사유 예제"
 
-
-class MediaReport(AbstractReport):
     reported = models.ForeignKey(
-        BaseMedia, on_delete=models.CASCADE, verbose_name="미디어"
+        Worldcup, on_delete=models.CASCADE, verbose_name="신고된 월드컵"
     )
+    reason = models.CharField("신고 사유", max_length=15, choices=Reason.choices)
 
 
-class CommentReport(AbstractReport):
-    reported = models.ForeignKey(Comment, on_delete=models.CASCADE, verbose_name="댓글")
+class MediaReport(Report):
+    class Reason(models.TextChoices):
+        MEDIAEXAMPLE = "MEDIAEXAMPLE", "미디어 신고 사유 예제"
+
+    reported = models.ForeignKey(
+        Media, on_delete=models.CASCADE, verbose_name="신고된 미디어"
+    )
+    reason = models.CharField("신고 사유", max_length=15, choices=Reason.choices)
+
+
+class CommentReport(Report):
+    class Reason(models.TextChoices):
+        COMMENTEXAMPLE = "COMMENTEXAMPLE", "댓글 신고 사유 예제"
+
+    reported = models.ForeignKey(
+        Comment, on_delete=models.CASCADE, verbose_name="신고된 댓글"
+    )
+    reason = models.CharField("신고 사유", max_length=15, choices=Reason.choices)
