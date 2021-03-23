@@ -1,17 +1,9 @@
-from django.conf import settings
 from rest_framework.routers import SimpleRouter
-from reportapp.views import (
-    CommentReportViewSet,
-    MediaReportViewSet,
-    UserReportViewSet,
-    WorldcupReportViewSet,
-)
+from .views import ReportViewSet
+
 
 router = SimpleRouter()
 
-router.register("reports/users", UserReportViewSet, "report-user")
-router.register("reports/worldcups", WorldcupReportViewSet, "report-worldcup")
-router.register("reports/medias", MediaReportViewSet, "report-media")
-router.register("reports/comments", CommentReportViewSet, "report-comment")
+router.register("reports", ReportViewSet, "report")
 
 urlpatterns = router.urls

@@ -1,31 +1,27 @@
 from rest_framework import mixins, viewsets
-from reportapp import models as reportapp_models
-from reportapp.policys import ReportViewSetAccessPolicy
-from reportapp.serializers import (
-    CommentReportListSerializer,
-    CommentReportSerializer,
-    MediaReportListSerializer,
-    MediaReportSerializer,
-    UserReportListSerializer,
-    UserReportSerializer,
-    WorldcupReportListSerializer,
-    WorldcupReportSerializer,
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from .policys import ReportViewSetAccessPolicy
+from .serializers import (
+    ReportPolymorphicDetailSerializer,
+    ReportPolymorphicListSerializer,
 )
+from .models import Report
 
 
 class ReportViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
-    """
-    모든 Report에서 공통적으로 사용되는 메서드와 상속 관계를 위해 작성된 뷰셋
-    상속을 통해 활용한다.
-    """
 
     permission_classes = [ReportViewSetAccessPolicy]
+    queryset = Report.objects.all()
+    serializer_class = ReportPolymorphicDetailSerializer
+    serializer_action_class = {
+        "list": ReportPolymorphicListSerializer,
+        "create": ReportPolymorphicListSerializer,
+    }
 
     def get_serializer_class(self):
         serializer_cls = self.serializer_action_class.get(self.action, None)
@@ -34,45 +30,37 @@ class ReportViewSet(
         return self.serializer_class
 
 
-class UserReportViewSet(ReportViewSet):
-    """Report - User"""
-
-    queryset = reportapp_models.UserReport.objects.all()
-    serializer_class = UserReportSerializer
-    serializer_action_class = {
-        "list": UserReportListSerializer,
-        "create": UserReportListSerializer,
-    }
-
-
-class WorldcupReportViewSet(ReportViewSet):
-    """Report - Worldcup"""
-
-    queryset = reportapp_models.WorldcupReport.objects.all()
-    serializer_class = WorldcupReportSerializer
-    serializer_action_class = {
-        "list": WorldcupReportListSerializer,
-        "create": WorldcupReportListSerializer,
-    }
-
-
-class MediaReportViewSet(ReportViewSet):
-    """Report - Media"""
-
-    queryset = reportapp_models.MediaReport.objects.all()
-    serializer_class = MediaReportSerializer
-    serializer_action_class = {
-        "list": MediaReportListSerializer,
-        "create": MediaReportListSerializer,
-    }
-
-
-class CommentReportViewSet(ReportViewSet):
-    """Report - Comment"""
-
-    queryset = reportapp_models.CommentReport.objects.all()
-    serializer_class = CommentReportSerializer
-    serializer_action_class = {
-        "list": CommentReportListSerializer,
-        "create": CommentReportListSerializer,
-    }
+ReportViewSet = extend_schema_view(
+    list=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Report List",
+                "## [ Permission ]",
+                "- IsSuperUser",
+            ]
+        ),
+    ),
+    create=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Report Create",
+                "## [ Permission ]",
+                "- AllowAny",
+                "## [ Polymorphic Field ]",
+                '- reported_type = Union["UserReport", "WorldcupReport", "MediaReport", "CommentReport"]',
+            ]
+        )
+    ),
+    destroy=extend_schema(
+        description="\n\n".join(
+            [
+                "## [ Description ]",
+                "- Report Destroy",
+                "## [ Permission ]",
+                "- IsSuperUser",
+            ]
+        )
+    ),
+)(ReportViewSet)

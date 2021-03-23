@@ -1,136 +1,180 @@
-from worldcupapp.models import BaseMedia, Comment, Worldcup
 from django.contrib.auth import get_user_model
-from reportapp.models import CommentReport, MediaReport, UserReport, WorldcupReport
-from worldcupapp.serializers import (
-    CommentSerializer,
-    MediaSerializer,
-    WorldcupSerializer,
-)
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
-from accountapp.serializers import UserListSerializer, UserSerializer
+from rest_polymorphic.serializers import PolymorphicSerializer
+from rest_framework_nested.relations import NestedHyperlinkedRelatedField
+from worldcupapp.models import Worldcup, Media, Comment
+from .models import UserReport, WorldcupReport, MediaReport, CommentReport
 
 
-class AbstractReportSerializer(serializers.ModelSerializer):
+# List Serializers
+class ReportListSerializer(serializers.ModelSerializer):
 
-    reporter = UserListSerializer(read_only=True)
+    mapping = {
+        UserReport: get_user_model(),
+        WorldcupReport: Worldcup,
+        MediaReport: Media,
+        CommentReport: Comment,
+    }
 
-    class Meta:
-        fields = (
-            "id",
-            "reporter",
-            "reported",
-            "reason",
-            "body",
-            "created_at",
-            "image",
-        )
-
-
-class AbstractReportListSerializer(serializers.HyperlinkedModelSerializer):
-
-    reporter = UserListSerializer(read_only=True)
+    reported_pk = serializers.IntegerField(write_only=True)
+    url = serializers.HyperlinkedIdentityField(view_name="report-detail")
 
     class Meta:
-        fields = (
+        fields = [
             "id",
             "url",
             "reporter",
-            "reported",
             "reported_pk",
+            "reported",
             "reason",
             "body",
             "image",
             "created_at",
-        )
+        ]
+        extra_kwargs = {
+            "reporter": {"read_only": True},
+            "reported": {"read_only": True},
+        }
 
     def validate_reported_pk(self, reported_pk):
-        reported_model = self.Meta.reported_model
-        if not reported_model.objects.filter(pk=reported_pk).exists():
-            raise serializers.ValidationError("신고 대상이 존재하지 않습니다.")
+        report_model = self.Meta.model
+        if not self.mapping[report_model].objects.filter(pk=reported_pk).exists():
+            raise serializers.ValidationError(
+                f"{self.mapping[report_model].__name__}에 해당 객체가 존재하지 않습니다."
+            )
         return reported_pk
 
     def create(self, validated_data):
-        reporter = self.context["request"].user
-        if not reporter.is_authenticated:
-            reporter = None
         reported_pk = validated_data.pop("reported_pk")
-        reported = self.Meta.reported_model.objects.get(pk=reported_pk)
-        validated_data |= {"reporter": reporter, "reported": reported}
+        reported = self.mapping[self.Meta.model].objects.get(pk=reported_pk)
+        reporter = self.context["request"].user
+        validated_data |= {
+            "reported": reported,
+            "reporter": reporter if reporter.is_authenticated else None,
+        }
         return super().create(validated_data)
 
 
-class UserReportSerializer(AbstractReportSerializer):
+class UserReportListSerializer(ReportListSerializer):
 
-    reported = UserSerializer(read_only=True)
+    reported = serializers.HyperlinkedRelatedField(
+        read_only=True, view_name="account-detail"
+    )
 
-    class Meta(AbstractReportSerializer.Meta):
+    class Meta(ReportListSerializer.Meta):
         model = UserReport
 
 
-class UserReportListSerializer(AbstractReportListSerializer):
+class WorldcupReportListSerializer(ReportListSerializer):
 
-    url = serializers.HyperlinkedIdentityField(view_name="report-user-detail")
-    reported = UserSerializer(read_only=True)
-    reported_pk = serializers.IntegerField(write_only=True)
+    reported = serializers.HyperlinkedRelatedField(
+        read_only=True, view_name="worldcup-detail"
+    )
 
-    class Meta(AbstractReportListSerializer.Meta):
+    class Meta(ReportListSerializer.Meta):
+        model = WorldcupReport
+
+
+class MediaReportListSerializer(ReportListSerializer):
+
+    reported = NestedHyperlinkedRelatedField(
+        read_only=True,
+        view_name="media-detail",
+        parent_lookup_kwargs={"worldcup_pk": "worldcup__pk"},
+    )
+
+    class Meta(ReportListSerializer.Meta):
+        model = MediaReport
+
+
+class CommentReportListSerializer(ReportListSerializer):
+
+    reported = NestedHyperlinkedRelatedField(
+        read_only=True,
+        view_name="comment-detail",
+        parent_lookup_kwargs={"worldcup_pk": "worldcup__pk"},
+    )
+
+    class Meta(ReportListSerializer.Meta):
+        model = CommentReport
+
+
+class ReportPolymorphicListSerializer(PolymorphicSerializer):
+
+    resource_type_field_name = "reported_type"
+
+    model_serializer_mapping = {
+        UserReport: UserReportListSerializer,
+        WorldcupReport: WorldcupReportListSerializer,
+        MediaReport: MediaReportListSerializer,
+        CommentReport: CommentReportListSerializer,
+    }
+
+
+# Detail Serializers
+class UserReportDetailSerializer(serializers.ModelSerializer):
+    class Meta:
         model = UserReport
-        reported_model = get_user_model()
+        fields = [
+            "id",
+            "reporter",
+            "reported",
+            "reason",
+            "body",
+            "image",
+            "created_at",
+        ]
 
 
-class WorldcupReportSerializer(AbstractReportSerializer):
-
-    reported = WorldcupSerializer(read_only=True)
-
-    class Meta(AbstractReportSerializer.Meta):
+class WorldcupReportDetailSerializer(serializers.ModelSerializer):
+    class Meta:
         model = WorldcupReport
+        fields = [
+            "id",
+            "reporter",
+            "reported",
+            "reason",
+            "body",
+            "image",
+            "created_at",
+        ]
 
 
-class WorldcupReportListSerializer(AbstractReportListSerializer):
-
-    url = serializers.HyperlinkedIdentityField(view_name="report-worldcup-detail")
-    reported = WorldcupSerializer(read_only=True)
-    reported_pk = serializers.IntegerField(write_only=True)
-
-    class Meta(AbstractReportListSerializer.Meta):
-        model = WorldcupReport
-        reported_model = Worldcup
-
-
-class MediaReportSerializer(AbstractReportSerializer):
-
-    reported = MediaSerializer(read_only=True)
-
-    class Meta(AbstractReportSerializer.Meta):
+class MediaReportDetailSerializer(serializers.ModelSerializer):
+    class Meta:
         model = MediaReport
+        fields = [
+            "id",
+            "reporter",
+            "reported",
+            "reason",
+            "body",
+            "image",
+            "created_at",
+        ]
 
 
-class MediaReportListSerializer(AbstractReportListSerializer):
-
-    url = serializers.HyperlinkedIdentityField(view_name="report-media-detail")
-    reported = MediaSerializer(read_only=True)
-    reported_pk = serializers.IntegerField(write_only=True)
-
-    class Meta(AbstractReportListSerializer.Meta):
-        model = MediaReport
-        reported_model = BaseMedia
-
-
-class CommentReportSerializer(AbstractReportSerializer):
-
-    reported = CommentSerializer(read_only=True)
-
-    class Meta(AbstractReportSerializer.Meta):
+class CommentReportDetailSerializer(serializers.ModelSerializer):
+    class Meta:
         model = CommentReport
+        fields = [
+            "id",
+            "reporter",
+            "reported",
+            "reason",
+            "body",
+            "image",
+            "created_at",
+        ]
 
 
-class CommentReportListSerializer(AbstractReportListSerializer):
+class ReportPolymorphicDetailSerializer(PolymorphicSerializer):
 
-    url = serializers.HyperlinkedIdentityField(view_name="report-comment-detail")
-    reported = CommentSerializer(read_only=True)
-    reported_pk = serializers.IntegerField(write_only=True)
+    resource_type_field_name = "reported_type"
 
-    class Meta(AbstractReportListSerializer.Meta):
-        model = CommentReport
-        reported_model = Comment
+    model_serializer_mapping = {
+        UserReport: UserReportDetailSerializer,
+        WorldcupReport: WorldcupReportDetailSerializer,
+        MediaReport: MediaReportDetailSerializer,
+        CommentReport: CommentReportDetailSerializer,
+    }

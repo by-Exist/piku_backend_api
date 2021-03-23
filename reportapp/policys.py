@@ -9,10 +9,10 @@ class ReportViewSetAccessPolicy(AccessPolicy):
             "action": ["<method:options>", "<method:head>"],
             "effect": "allow",
         },
-        # TODO: admin을 함수를 통해 식별하는 것이 아닌 Group을 활용하여 식별하도록 하자.
         {
             "principal": ["authenticated"],
-            "action": ["list", "retrieve", "destroy"],
+            "action": ["list", "destroy"],
+            # TODO: superuser -> group:manager
             "condition": ["is_superuser"],
             "effect": "allow",
         },
