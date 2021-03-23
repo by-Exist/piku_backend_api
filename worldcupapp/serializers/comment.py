@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_nested.serializers import NestedHyperlinkedIdentityField
 from rest_polymorphic.serializers import PolymorphicSerializer
-from ..models import AuthUserComment, AnonUserComment, Profile
+from ..models import AuthUserComment, AnonUserComment
 
 
 class AuthUserCommentDetailSerializer(serializers.ModelSerializer):
@@ -150,8 +150,6 @@ class AnonUserCommentPasswordCheckSerializer(serializers.Serializer):
 
 class CommentPolymorphicDetailSerializer(PolymorphicSerializer):
 
-    resource_type_field_name = "usertype"
-
     model_serializer_mapping = {
         AuthUserComment: AuthUserCommentDetailSerializer,
         AnonUserComment: AnonUserCommentDetailSerializer,
@@ -160,9 +158,26 @@ class CommentPolymorphicDetailSerializer(PolymorphicSerializer):
 
 class CommentPolymorphicListSerializer(PolymorphicSerializer):
 
-    resource_type_field_name = "usertype"
+    resource_type_field_name = "user_type"
 
     model_serializer_mapping = {
         AuthUserComment: AuthUserCommentListSerializer,
         AnonUserComment: AnonUserCommentListSerializer,
     }
+
+    def get_serializer(self):
+        if self.context["request"].user.is_authenticated:
+            return (AuthUserCommentListSerializer,)
+        return AnonUserCommentListSerializer
+
+    def get_model(self):
+        if self.context["request"].user.is_authenticated:
+            return AuthUserComment
+        return AnonUserComment
+
+    def _get_resource_type_from_mapping(self, mapping):
+        return self.get_serializer()
+
+    def _get_serializer_from_resource_type(self, resource_type):
+        model = self.get_model()
+        return self._get_serializer_from_model_or_instance(model)

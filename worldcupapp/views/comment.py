@@ -11,6 +11,7 @@ from ..serializers import (
     CommentPolymorphicDetailSerializer,
     CommentPolymorphicListSerializer,
 )
+from ..policys import CommentViewSetAccessPolicy
 
 
 class CommentViewSet(
@@ -27,6 +28,8 @@ class CommentViewSet(
         "create": CommentPolymorphicListSerializer,
         "check_password": AnonUserCommentPasswordCheckSerializer,
     }
+
+    permission_classes = [CommentViewSetAccessPolicy]
 
     @cached_property
     def parent_object(self):
