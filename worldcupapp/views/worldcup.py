@@ -1,4 +1,4 @@
-from django.db.models import F
+from django.db.models import F, Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, filters, status
 from rest_framework.decorators import action
@@ -11,7 +11,7 @@ from drf_spectacular.utils import (
 )
 from drf_spectacular.types import OpenApiTypes
 from drf_patchonly_mixin import mixins as dpm_mixins
-from ..models import Worldcup
+from ..models import Worldcup, TextMedia, ImageMedia, GifMedia, VideoMedia, Media
 from ..policys import WorldcupViewSetAccessPolicy
 from ..serializers import (
     WorldcupDetailSerializer,
@@ -29,7 +29,15 @@ class WorldcupViewSet(
     viewsets.GenericViewSet,
 ):
     permission_classes = [WorldcupViewSetAccessPolicy]
-    queryset = Worldcup.objects.all()
+    queryset = Worldcup.objects.select_related(
+        "creator",
+        "creator__profile",
+    )
+    # .prefetch_related(
+    #     Prefetch(lookup="media_set", queryset=Media.objects.get_real_instances()),
+    # )
+
+    pagination_class = None
     serializer_class = WorldcupDetailSerializer
     serializer_action_class = {
         "list": WorldcupListSerializer,

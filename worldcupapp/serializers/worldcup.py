@@ -23,17 +23,17 @@ class ThumbnailListSerializerCharField(serializers.CharField):
 class WorldcupDetailSerializer(serializers.ModelSerializer):
 
     creator = UserListSerializer(read_only=True)
-    thumbnail = ThumbnailListSerializer(
-        read_only=True,
-        source="media_set",
-        child=ThumbnailListSerializerCharField(),
-    )
+    # thumbnail = ThumbnailListSerializer(
+    #     read_only=True,
+    #     source="media_set",
+    #     child=ThumbnailListSerializerCharField(),
+    # )
 
     class Meta:
         model = Worldcup
         fields = (
             "id",
-            "thumbnail",
+            # "thumbnail",
             "title",
             "subtitle",
             "media_type",
@@ -64,18 +64,18 @@ class WorldcupDetailSerializer(serializers.ModelSerializer):
 class WorldcupListSerializer(serializers.HyperlinkedModelSerializer):
 
     creator = UserListSerializer(read_only=True)
-    thumbnail = ThumbnailListSerializer(
-        read_only=True,
-        source="media_set",
-        child=ThumbnailListSerializerCharField(),
-    )
+    # thumbnail = ThumbnailListSerializer(
+    #     read_only=True,
+    #     source="media_set",
+    #     child=ThumbnailListSerializerCharField(),
+    # )
 
     class Meta:
         model = Worldcup
         fields = (
             "id",
             "url",
-            "thumbnail",
+            # "thumbnail",
             "title",
             "subtitle",
             "media_type",
