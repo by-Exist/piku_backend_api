@@ -10,6 +10,7 @@ from drf_spectacular.utils import (
     OpenApiParameter,
     OpenApiExample,
 )
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_action_serializer import mixins as das_mixins
 from drf_patchonly_mixin import mixins as dpm_mixins
 from . import models as accountapp_models
@@ -44,8 +45,14 @@ class UserViewSet(
     }
 
     permission_classes = [UserViewSetAccessPolicy]
-    filter_backends = [filters.OrderingFilter]
+    filter_backends = [
+        filters.OrderingFilter,
+        filters.SearchFilter,
+        DjangoFilterBackend,
+    ]
     ordering_fields = ["date_joined", "last_login"]
+    filterset_fields = ["is_superuser", "is_active"]
+    search_fields = ["username", "profile__nickname"]
 
     @action(
         detail=True,
@@ -149,6 +156,18 @@ UserViewSet = extend_schema_view(
                         for field_name in UserViewSet.ordering_fields
                     ],
                 ],
+            ),
+            OpenApiParameter(
+                name="is_active",
+                description="사용자 활성화 여부",
+            ),
+            OpenApiParameter(
+                name="is_superuser",
+                description="사용자 superuser 여부",
+            ),
+            OpenApiParameter(
+                name="search",
+                description="username, nickname",
             ),
         ],
     ),
