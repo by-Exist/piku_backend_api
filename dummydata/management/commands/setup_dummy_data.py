@@ -4,7 +4,13 @@ from django.core.management.base import BaseCommand
 from accountapp.models import CustomUser, Profile
 from worldcupapp.models import Worldcup
 from ...factories.accountapp import UserFactory, ProfileFactory
-from ...factories.worldcupapp import WorldcupFactory
+from ...factories.worldcupapp import (
+    WorldcupFactory,
+    TextMediaFactory,
+    ImageMediaFactory,
+    GifMediaFactory,
+    VideoMediaFactory,
+)
 
 
 model_factory_mapping = {
@@ -15,6 +21,8 @@ model_factory_mapping = {
 
 NUM_USERS = 50
 NUM_WORLDCUPS = 50
+RANGE_WORLDCUPS_MEDIA = range(2, 50)
+RANGE_WORLDCUPS_COMMENT = range(0, 50)
 
 
 class Command(BaseCommand):
@@ -40,8 +48,16 @@ class Command(BaseCommand):
             ProfileFactory(user=user)
             users.append(user)
 
-        worldcups = []
+        media_type_mapping = {
+            "Text": TextMediaFactory,
+            "Image": ImageMediaFactory,
+            "Gif": GifMediaFactory,
+            "Video": VideoMediaFactory,
+        }
 
         for _ in range(NUM_WORLDCUPS):
             worldcup = WorldcupFactory(creator=choice(users))
-            worldcups.append(worldcup)
+            media_factory = media_type_mapping[worldcup.media_type]
+
+            for _ in range(choice(RANGE_WORLDCUPS_MEDIA)):
+                media_factory(worldcup=worldcup)
