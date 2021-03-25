@@ -154,7 +154,7 @@ MediaViewSet = extend_schema_view(
         description="\n\n".join(
             [
                 "## [ Description ]",
-                "- Media's view counts Update",
+                "- Media's counts Update",
                 "- 게임이 종료될 때 사용된 미디어들의 정보 업데이트에 사용",
                 "- media의 win_count, view_count, choice_count를 대상으로 함",
                 "## [ Permission ]",
