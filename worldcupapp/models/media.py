@@ -18,6 +18,18 @@ class Media(PolymorphicModel):
         "선택 횟수", blank=True, default=0, editable=False
     )
 
+    def win_count_up(self, num):
+        """no save"""
+        self.win_count = models.F("win_count") + num
+
+    def view_count_up(self, num):
+        """no save"""
+        self.view_count = models.F("view_count") + num
+
+    def choice_count_up(self, num):
+        """no save"""
+        self.choice_count = models.F("choice_count") + num
+
 
 class TextMedia(Media):
     body = models.TextField("텍스트", max_length=1023)

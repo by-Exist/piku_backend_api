@@ -44,7 +44,7 @@ class MediaViewSetAccessPolicy(AccessPolicy):
         },
         {
             "principal": "*",
-            "action": ["list"],
+            "action": ["list", "counts"],
             "effect": "allow",
         },
         {

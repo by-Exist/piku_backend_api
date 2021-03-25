@@ -76,3 +76,16 @@ class VideoMediaDetailSerializer(serializers.ModelSerializer):
 class VideoMediaListSerializer(MediaListSerializer):
     class Meta(MediaListSerializer.Meta):
         model = VideoMedia
+
+
+class MediaCountSerializer(serializers.Serializer):
+
+    media_id = serializers.IntegerField()
+    win_count_up_value = serializers.IntegerField(required=False, allow_null=True)
+    view_count_up_value = serializers.IntegerField(required=False, allow_null=True)
+    choice_count_up_value = serializers.IntegerField(required=False, allow_null=True)
+
+
+class MediaCountListSerializer(serializers.Serializer):
+
+    counts = serializers.ListSerializer(child=MediaCountSerializer())
