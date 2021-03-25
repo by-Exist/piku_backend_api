@@ -16,7 +16,6 @@ from ..policys import WorldcupViewSetAccessPolicy
 from ..serializers import (
     WorldcupDetailSerializer,
     WorldcupListSerializer,
-    ThumbnailSerializer,
     NoBodyPostSerializer,
 )
 
@@ -42,7 +41,6 @@ class WorldcupViewSet(
         "create": WorldcupListSerializer,
         "play_counts": NoBodyPostSerializer,
         "view_counts": NoBodyPostSerializer,
-        "thumbnail": ThumbnailSerializer,
     }
 
     filter_backends = [
