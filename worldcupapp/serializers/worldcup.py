@@ -1,39 +1,16 @@
-from django.db import models
 from rest_framework import serializers
 from accountapp.serializers import UserListSerializer
 from ..models import Worldcup
 
 
-class ThumbnailListSerializer(serializers.ListSerializer):
-    def to_representation(self, data):
-        iterable = data.all()[:2] if isinstance(data, models.Manager) else []
-        return [self.child.to_representation(item) for item in iterable]
-
-
-class ThumbnailListSerializerCharField(serializers.CharField):
-    def to_representation(self, value):
-        body = value.body
-        if hasattr(body, "url"):
-            url = self.context["request"].build_absolute_uri(body.url)
-            return url
-        else:
-            return body
-
-
 class WorldcupDetailSerializer(serializers.ModelSerializer):
 
     creator = UserListSerializer(read_only=True)
-    # thumbnail = ThumbnailListSerializer(
-    #     read_only=True,
-    #     source="media_set",
-    #     child=ThumbnailListSerializerCharField(),
-    # )
 
     class Meta:
         model = Worldcup
         fields = (
             "id",
-            # "thumbnail",
             "title",
             "subtitle",
             "media_type",
@@ -64,18 +41,12 @@ class WorldcupDetailSerializer(serializers.ModelSerializer):
 class WorldcupListSerializer(serializers.HyperlinkedModelSerializer):
 
     creator = UserListSerializer(read_only=True)
-    # thumbnail = ThumbnailListSerializer(
-    #     read_only=True,
-    #     source="media_set",
-    #     child=ThumbnailListSerializerCharField(),
-    # )
 
     class Meta:
         model = Worldcup
         fields = (
             "id",
             "url",
-            # "thumbnail",
             "title",
             "subtitle",
             "media_type",
