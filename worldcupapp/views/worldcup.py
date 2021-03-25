@@ -1,4 +1,4 @@
-from django.db.models import F, Prefetch
+from django.db.models import F
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, filters, status
 from rest_framework.decorators import action
@@ -11,11 +11,12 @@ from drf_spectacular.utils import (
 )
 from drf_spectacular.types import OpenApiTypes
 from drf_patchonly_mixin import mixins as dpm_mixins
-from ..models import Worldcup, TextMedia, ImageMedia, GifMedia, VideoMedia, Media
+from ..models import Worldcup, TextMedia, ImageMedia, GifMedia, VideoMedia
 from ..policys import WorldcupViewSetAccessPolicy
 from ..serializers import (
     WorldcupDetailSerializer,
     WorldcupListSerializer,
+    ThumbnailSerializer,
     NoBodyPostSerializer,
 )
 
@@ -33,9 +34,6 @@ class WorldcupViewSet(
         "creator",
         "creator__profile",
     )
-    # .prefetch_related(
-    #     Prefetch(lookup="media_set", queryset=Media.objects.get_real_instances()),
-    # )
 
     pagination_class = None
     serializer_class = WorldcupDetailSerializer
@@ -44,6 +42,7 @@ class WorldcupViewSet(
         "create": WorldcupListSerializer,
         "play_counts": NoBodyPostSerializer,
         "view_counts": NoBodyPostSerializer,
+        "thumbnail": ThumbnailSerializer,
     }
 
     filter_backends = [
@@ -70,6 +69,21 @@ class WorldcupViewSet(
         worldcup.play_count = F("play_count") + 1
         worldcup.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(methods=["get"], detail=True)
+    def thumbnail(self, request, **kwrags):
+        worldcup = self.get_object()
+        media_type_model_mapping = {
+            "Text": TextMedia,
+            "Image": ImageMedia,
+            "Gif": GifMedia,
+            "Video": VideoMedia,
+        }
+        model_cls = media_type_model_mapping[worldcup.media_type]
+        thumbnail = model_cls.objects.filter(worldcup=worldcup).values_list(
+            "body", flat=True
+        )[:2]
+        return Response(data=thumbnail, status=status.HTTP_200_OK)
 
     def get_serializer_class(self):
         serializer_cls = self.serializer_action_class.get(self.action, None)

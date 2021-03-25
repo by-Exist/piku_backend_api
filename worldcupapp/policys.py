@@ -12,7 +12,7 @@ class WorldcupViewSetAccessPolicy(AccessPolicy):
         },
         {
             "principal": "*",
-            "action": ["list", "retrieve", "play_counts", "view_counts"],
+            "action": ["list", "retrieve", "thumbnail", "play_counts", "view_counts"],
             "effect": "allow",
         },
         {
