@@ -1,8 +1,8 @@
-from random import choice
+import random
 from django.db import transaction
 from django.core.management.base import BaseCommand
 from accountapp.models import CustomUser, Profile
-from worldcupapp.models import Worldcup
+from worldcupapp.models import Worldcup, Media, Comment
 from ...factories.accountapp import UserFactory, ProfileFactory
 from ...factories.worldcupapp import (
     WorldcupFactory,
@@ -10,19 +10,17 @@ from ...factories.worldcupapp import (
     ImageMediaFactory,
     GifMediaFactory,
     VideoMediaFactory,
+    AuthUserCommentFactory,
+    AnonUserCommentFactory,
 )
 
 
-model_factory_mapping = {
-    CustomUser: UserFactory,
-    Profile: ProfileFactory,
-    Worldcup: WorldcupFactory,
-}
+models = [CustomUser, Profile, Worldcup, Media, Comment]
 
 NUM_USERS = 50
 NUM_WORLDCUPS = 50
-RANGE_WORLDCUPS_MEDIA = range(2, 50)
-RANGE_WORLDCUPS_COMMENT = range(0, 50)
+NUM_RANGE_WORLDCUPS_MEDIA = range(0, 50)
+NUM_RANGE_WORLDCUPS_COMMENT = range(0, 50)
 
 
 class Command(BaseCommand):
@@ -32,13 +30,11 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **kwargs):
 
-        # delete...
         self.stdout.write("Deleting old data...")
 
-        for model in model_factory_mapping.keys():
+        for model in models:
             model.objects.all().delete()
 
-        # create...
         self.stdout.write("Creating new data...")
 
         users = []
@@ -56,8 +52,27 @@ class Command(BaseCommand):
         }
 
         for _ in range(NUM_WORLDCUPS):
-            worldcup = WorldcupFactory(creator=choice(users))
-            media_factory = media_type_mapping[worldcup.media_type]
+            worldcup = WorldcupFactory(creator=random.choice(users))
 
-            for _ in range(choice(RANGE_WORLDCUPS_MEDIA)):
-                media_factory(worldcup=worldcup)
+            media_factory = media_type_mapping[worldcup.media_type]
+            medias = []
+            for _ in range(random.choice(NUM_RANGE_WORLDCUPS_MEDIA)):
+                media = media_factory(worldcup=worldcup)
+                medias.append(media)
+
+            comments = []
+            for _ in range(random.choice(NUM_RANGE_WORLDCUPS_COMMENT)):
+                use_auth = random.choice([True, False])
+                use_media = random.choice([True, False])
+                data = {"worldcup": worldcup}
+                if medias and use_media:
+                    media = random.choice(medias)
+                    data |= {"media": media}
+                if use_auth:
+                    writer = random.choice(users)
+                    data |= {"writer": writer}
+                    comment = AuthUserCommentFactory(**data)
+                    comments.append(comment)
+                else:
+                    comment = AnonUserCommentFactory(**data)
+                    comments.append(comment)
