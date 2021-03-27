@@ -13,6 +13,12 @@ from ...factories.worldcupapp import (
     AuthUserCommentFactory,
     AnonUserCommentFactory,
 )
+from ...factories.reportapp import (
+    UserReportFactory,
+    WorldcupReportFactory,
+    MediaReportFactory,
+    CommentReportFactory,
+)
 
 
 models = [CustomUser, Profile, Worldcup, Media, Comment]
@@ -21,6 +27,7 @@ NUM_USERS = 50
 NUM_WORLDCUPS = 50
 NUM_RANGE_WORLDCUPS_MEDIA = range(0, 50)
 NUM_RANGE_WORLDCUPS_COMMENT = range(0, 50)
+NUM_REPORTS = 100
 
 
 class Command(BaseCommand):
@@ -38,6 +45,10 @@ class Command(BaseCommand):
         self.stdout.write("Creating new data...")
 
         users = []
+        worldcups = []
+        medias = []
+        comments = []
+        reports = []
 
         for _ in range(NUM_USERS):
             user = UserFactory()
@@ -53,14 +64,14 @@ class Command(BaseCommand):
 
         for _ in range(NUM_WORLDCUPS):
             worldcup = WorldcupFactory(creator=random.choice(users))
+            worldcups.append(worldcup)
 
             media_factory = media_type_mapping[worldcup.media_type]
-            medias = []
+
             for _ in range(random.choice(NUM_RANGE_WORLDCUPS_MEDIA)):
                 media = media_factory(worldcup=worldcup)
                 medias.append(media)
 
-            comments = []
             for _ in range(random.choice(NUM_RANGE_WORLDCUPS_COMMENT)):
                 use_auth = random.choice([True, False])
                 use_media = random.choice([True, False])
@@ -76,3 +87,20 @@ class Command(BaseCommand):
                 else:
                     comment = AnonUserCommentFactory(**data)
                     comments.append(comment)
+
+        for _ in range(NUM_REPORTS):
+            factory, targets = random.choice(
+                [
+                    (UserReportFactory, users),
+                    (WorldcupReportFactory, worldcups),
+                    (MediaReportFactory, medias),
+                    (CommentReportFactory, comments),
+                ]
+            )
+            use_reporter = random.choice([True, False])
+            data = {}
+            if use_reporter:
+                data["reporter"] = random.choice(users)
+            data["reported"] = random.choice(targets)
+            report = factory(**data)
+            reports.append(report)
