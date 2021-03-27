@@ -1,3 +1,6 @@
+from itertools import chain
+from django.contrib.auth import get_user_model
+from django.db.models import Prefetch
 from django.utils.functional import cached_property
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, mixins, status
@@ -5,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from drf_patchonly_mixin import mixins as dpm_mixins
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from ..models import Comment, Worldcup
+from ..models import Comment, Worldcup, AnonUserComment, AuthUserComment
 from ..serializers import (
     AnonUserCommentPasswordCheckSerializer,
     CommentPolymorphicDetailSerializer,
@@ -36,7 +39,20 @@ class CommentViewSet(
         return get_object_or_404(Worldcup, pk=self.kwargs["worldcup_pk"])
 
     def get_queryset(self):
-        return Comment.objects.filter(worldcup=self.parent_object)
+        if self.queryset:
+            return self.queryset
+        self.queryset = sorted(
+            chain(
+                AnonUserComment.objects.select_related("worldcup").filter(
+                    worldcup=self.parent_object
+                ),
+                AuthUserComment.objects.select_related(
+                    "worldcup", "writer__profile"
+                ).filter(worldcup=self.parent_object),
+            ),
+            key=lambda obj: obj.created_at,
+        )
+        return self.queryset
 
     def get_serializer_class(self):
         if serializer_class := self.serializer_action_class.get(self.action, None):
