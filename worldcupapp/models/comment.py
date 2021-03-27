@@ -6,11 +6,23 @@ from accountapp.models import Profile
 from ..models import Worldcup, Media
 
 
+# polymorphic 모델의 계단식 삭제가 올바르게 적용되지 않는 문제 해결
+# https://github.com/django-polymorphic/django-polymorphic/issues/229
+def NON_POLYMORPHIC_CASCADE(collector, field, sub_objs, using):
+    return models.CASCADE(collector, field, sub_objs.non_polymorphic(), using)
+
+
 class Comment(PolymorphicModel):
 
-    worldcup = models.ForeignKey(Worldcup, on_delete=models.CASCADE, verbose_name="월드컵")
+    worldcup = models.ForeignKey(
+        Worldcup, on_delete=NON_POLYMORPHIC_CASCADE, verbose_name="월드컵"
+    )
     media = models.ForeignKey(
-        Media, null=True, blank=True, on_delete=models.CASCADE, verbose_name="미디어"
+        Media,
+        null=True,
+        blank=True,
+        on_delete=NON_POLYMORPHIC_CASCADE,
+        verbose_name="미디어",
     )
     body = models.CharField("댓글 내용", max_length=511)
     created_at = models.DateTimeField("작성시각", auto_now_add=True)

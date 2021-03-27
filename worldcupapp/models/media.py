@@ -3,9 +3,18 @@ from django.db import models
 from ..models import Worldcup
 
 
+# polymorphic 모델의 계단식 삭제가 올바르게 적용되지 않는 문제 해결
+# https://github.com/django-polymorphic/django-polymorphic/issues/229
+def NON_POLYMORPHIC_CASCADE(collector, field, sub_objs, using):
+    return models.CASCADE(collector, field, sub_objs.non_polymorphic(), using)
+
+
 class Media(PolymorphicModel):
     worldcup = models.ForeignKey(
-        Worldcup, on_delete=models.CASCADE, verbose_name="월드컵", related_name="media_set"
+        Worldcup,
+        on_delete=NON_POLYMORPHIC_CASCADE,
+        verbose_name="월드컵",
+        related_name="media_set",
     )
     title = models.CharField("제목", max_length=31)
     win_count = models.PositiveIntegerField(
