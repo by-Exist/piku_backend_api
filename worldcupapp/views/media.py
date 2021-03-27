@@ -1,3 +1,4 @@
+from itertools import chain
 from django.shortcuts import get_object_or_404
 from django.utils.functional import cached_property
 from worldcupapp.models.worldcup import Worldcup
@@ -9,7 +10,7 @@ from drf_spectacular.utils import (
     extend_schema,
 )
 from drf_patchonly_mixin import mixins as dpm_mixins
-from ..models import Media
+from ..models import Media, TextMedia, ImageMedia, GifMedia, VideoMedia
 from ..policys import MediaViewSetAccessPolicy
 from ..serializers import (
     GifMediaDetailSerializer,
@@ -51,7 +52,19 @@ class MediaViewSet(
         return get_object_or_404(Worldcup, pk=self.kwargs["worldcup_pk"])
 
     def get_queryset(self):
-        return Media.objects.filter(worldcup=self.parent_object)
+        if self.queryset:
+            return self.queryset
+        media_type_model_mapping = {
+            "Text": TextMedia,
+            "Image": ImageMedia,
+            "Gif": GifMedia,
+            "Video": VideoMedia,
+        }
+        model_cls = media_type_model_mapping[self.parent_object.media_type]
+        self.queryset = model_cls.objects.select_related("worldcup").filter(
+            worldcup=self.parent_object
+        )
+        return self.queryset
 
     def get_serializer_class(self):
         if self.action == "counts":
