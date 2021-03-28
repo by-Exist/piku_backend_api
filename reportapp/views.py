@@ -1,4 +1,4 @@
-from django.db.models import Prefetch
+from itertools import chain
 from rest_framework import mixins, viewsets
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from .policys import ReportViewSetAccessPolicy
@@ -6,7 +6,7 @@ from .serializers import (
     ReportPolymorphicDetailSerializer,
     ReportPolymorphicListSerializer,
 )
-from .models import Report, UserReport, WorldcupReport, MediaReport, CommentReport
+from .models import UserReport, WorldcupReport, MediaReport, CommentReport
 
 
 class ReportViewSet(
@@ -24,19 +24,18 @@ class ReportViewSet(
     }
 
     def get_queryset(self):
-        return (
-            Report.objects.select_related("reporter")
-            .prefetch_related(
-                Prefetch(
-                    "reported",
-                    Report.objects.instance_of(UserReport).all()
-                    | Report.objects.instance_of(WorldcupReport).all()
-                    | Report.objects.instance_of(MediaReport).all()
-                    | Report.objects.instance_of(CommentReport).all(),
-                )
-            )
-            .all()
+        if self.queryset:
+            return self.queryset
+        self.queryset = sorted(
+            chain(
+                UserReport.objects.select_related("reporter", "reported"),
+                WorldcupReport.objects.select_related("reporter", "reported"),
+                MediaReport.objects.select_related("reporter", "reported__worldcup"),
+                CommentReport.objects.select_related("reporter", "reported__worldcup"),
+            ),
+            key=lambda obj: obj.pk,
         )
+        return self.queryset
 
     def get_serializer_class(self):
         serializer_cls = self.serializer_action_class.get(self.action, None)
