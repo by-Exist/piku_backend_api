@@ -18,6 +18,7 @@ class Report(PolymorphicModel):
         "증빙 사진", blank=True, upload_to="reportapp/report/%Y/%m/%d"
     )
     created_at = models.DateTimeField("작성일", auto_now_add=True)
+    processed = models.BooleanField("처리 여부", default=False)
 
 
 class UserReport(Report):
