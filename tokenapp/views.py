@@ -1,10 +1,20 @@
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.settings import api_settings
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
 
 class DecoratedTokenObtainPairView(TokenObtainPairView):
-    @extend_schema(
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
+class DecoratedTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
+DecoratedTokenObtainPairView = extend_schema_view(
+    post=extend_schema(
         description="\n\n".join(
             [
                 "## [ Description ]",
@@ -16,12 +26,11 @@ class DecoratedTokenObtainPairView(TokenObtainPairView):
             ]
         )
     )
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+)(DecoratedTokenObtainPairView)
 
 
-class DecoratedTokenRefreshView(TokenRefreshView):
-    @extend_schema(
+DecoratedTokenRefreshView = extend_schema_view(
+    post=extend_schema(
         description="\n\n".join(
             [
                 "## [ Description ]",
@@ -31,5 +40,4 @@ class DecoratedTokenRefreshView(TokenRefreshView):
             ]
         )
     )
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+)(DecoratedTokenRefreshView)
