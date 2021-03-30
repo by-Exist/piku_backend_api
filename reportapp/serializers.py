@@ -1,13 +1,22 @@
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 from rest_framework import serializers
 from rest_polymorphic.serializers import PolymorphicSerializer
 from rest_framework_nested.relations import NestedHyperlinkedRelatedField
 from worldcupapp.models import Worldcup, Media, Comment
 from .models import UserReport, WorldcupReport, MediaReport, CommentReport
+from accountapp.models import Profile
 
 
 # List Serializers
 class ReportListSerializer(serializers.ModelSerializer):
+    class ReporterSerializer(serializers.ModelSerializer):
+        nickname = serializers.CharField(source="profile.nickname", read_only=True)
+        avatar = serializers.CharField(source="profile.avatar", read_only=True)
+
+        class Meta:
+            model = Profile
+            fields = ["nickname", "avatar"]
 
     mapping = {
         UserReport: get_user_model(),
@@ -17,12 +26,11 @@ class ReportListSerializer(serializers.ModelSerializer):
     }
 
     reported_pk = serializers.IntegerField(write_only=True)
-    url = serializers.HyperlinkedIdentityField(view_name="report-detail")
+    reporter = ReporterSerializer()
 
     class Meta:
         fields = [
             "id",
-            "url",
             "reporter",
             "reported_pk",
             "reported",
@@ -99,18 +107,6 @@ class CommentReportListSerializer(ReportListSerializer):
         model = CommentReport
 
 
-class ReportPolymorphicListSerializer(PolymorphicSerializer):
-
-    resource_type_field_name = "reported_type"
-
-    model_serializer_mapping = {
-        UserReport: UserReportListSerializer,
-        WorldcupReport: WorldcupReportListSerializer,
-        MediaReport: MediaReportListSerializer,
-        CommentReport: CommentReportListSerializer,
-    }
-
-
 # Detail Serializers
 class UserReportDetailSerializer(serializers.ModelSerializer):
     class Meta:
@@ -168,13 +164,14 @@ class CommentReportDetailSerializer(serializers.ModelSerializer):
         ]
 
 
-class ReportPolymorphicDetailSerializer(PolymorphicSerializer):
+# Partial Update Serializers
+class ReportProcessedEditSerializer(serializers.Serializer):
 
-    resource_type_field_name = "reported_type"
+    id = serializers.IntegerField(source="pk", read_only=True)
+    processed = serializers.BooleanField()
 
-    model_serializer_mapping = {
-        UserReport: UserReportDetailSerializer,
-        WorldcupReport: WorldcupReportDetailSerializer,
-        MediaReport: MediaReportDetailSerializer,
-        CommentReport: CommentReportDetailSerializer,
-    }
+    def update(self, instance, validated_data):
+        processed = validated_data["processed"]
+        instance.processed = processed
+        instance.save()
+        return instance

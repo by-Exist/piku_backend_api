@@ -4,6 +4,12 @@ from .views import ReportViewSet
 
 router = SimpleRouter()
 
-router.register("reports", ReportViewSet, "report")
+reported_type_str_list = ["users", "worldcups", "medias", "comments"]
+
+router.register(
+    "reports/(?P<reported_type>(" + "|".join(reported_type_str_list) + "))",
+    ReportViewSet,
+    "report",
+)
 
 urlpatterns = router.urls

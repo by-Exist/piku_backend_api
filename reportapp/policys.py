@@ -11,7 +11,7 @@ class ReportViewSetAccessPolicy(AccessPolicy):
         },
         {
             "principal": ["authenticated"],
-            "action": ["list", "destroy"],
+            "action": ["list", "destroy", "partial_update"],
             # TODO: superuser -> group:manager
             "condition": ["is_superuser"],
             "effect": "allow",
