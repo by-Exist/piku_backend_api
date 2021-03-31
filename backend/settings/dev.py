@@ -1,6 +1,5 @@
 from .common import *
 import environ
-import socket
 
 LOCAL_ENV_PATH = "backend/settings/local.env"
 USE_GITHUB_WORKFLOW_ENV = os.environ.get("GITHUB_WORKFLOW", False)
@@ -45,9 +44,10 @@ DATABASES = {
     "default": env.db("DJANGO_DATABASE_URL")
 }
 
-# INTERNAL_IPS - Debug Toolbar need value with Docker
+# INTERNAL_IPS - needed Debug Toolbar for Docker
 # https://stackoverflow.com/questions/26898597/django-debug-toolbar-and-docker
-INTERNAL_IPS = [socket.gethostbyname(socket.gethostname())[:-1] + "1"]
+INTERNAL_IPS = type(str("c"), (), {"__contains__": lambda *a: True})()
+
 
 # LOCAL EMAIL - https://docs.djangoproject.com/en/3.1/topics/email/#file-backend
 EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
