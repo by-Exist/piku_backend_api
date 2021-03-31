@@ -8,24 +8,22 @@ services:
     volumes:
       - database_volume:/var/lib/postgresql/data
     environment:
+      # if no write, ==POSTGRES_USER
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8
-    networks:
-      - backend
     ports:
       - "5432:5432"
 
   app-server:
     build:
-      # build 기준 경로 변경
+      # build path 변경
       context: ..
-      # 변경된 경로를 기준으로 Dockerfile의 상대경로 지정
+      # Dockerfile의 경로
       dockerfile: ./docker/Dockerfile.dev
     depends_on:
       - database
-    networks: 
-      - frontend
-      - backend
     volumes:
       - ..:/app
     working_dir: /app
@@ -38,7 +36,3 @@ services:
 
 volumes:
   database_volume:
-
-networks:
-  frontend:
-  backend:
