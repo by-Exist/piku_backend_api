@@ -12,11 +12,6 @@ jobs:
 
   testing:
     runs-on: ubuntu-latest
-    env:
-      DJANGO_DEBUG: 1
-      DJANGO_SECRET_KEY: testing_secret_key
-      DJANGO_ALLOWED_HOSTS: "*"
-      DJANGO_DATABASE_URL: psql://postgres:password@127.0.0.1:5432/postgres
     services:
       postgres:
         image: postgres:latest
@@ -38,6 +33,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements/dev.txt
       - name: Run migrations
-        run: python manage.py migrate
+        run: python manage.py --settings=backend.settings.actions migrate
       - name: Run tests
-        run: python manage.py test
+        run: python manage.py --settings=backend.settings.actions test
