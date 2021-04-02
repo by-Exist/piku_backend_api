@@ -13,7 +13,4 @@ from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings.prod")
 
-if IS_RUNNING_GITHUB_ACTION := os.environ.get("GITHUB_WORKFLOW", False):
-    os.environ["DJANGO_SETTINGS_MODULE"] = "backend.settings.action"
-
 application = get_wsgi_application()
