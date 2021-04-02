@@ -12,11 +12,6 @@ jobs:
 
   testing:
     runs-on: ubuntu-latest
-    env:
-      DJANGO_DEBUG: 1
-      DJANGO_SECRET_KEY: testing_secret_key
-      DJANGO_ALLOWED_HOSTS: "*"
-      DJANGO_DATABASE_URL: psql://postgres:password@127.0.0.1:5432/postgres
     services:
       postgres:
         image: postgres:latest
