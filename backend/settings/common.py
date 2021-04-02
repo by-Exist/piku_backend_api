@@ -22,8 +22,6 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "rest_framework",
     "polymorphic",
-    # Util apps
-    "drf_action_serializer",
     # Local apps
     "accountapp",
     "tokenapp",

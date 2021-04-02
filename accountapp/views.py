@@ -11,7 +11,6 @@ from drf_spectacular.utils import (
     OpenApiExample,
 )
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_action_serializer import mixins as das_mixins
 from drf_patchonly_mixin import mixins as dpm_mixins
 from . import models as accountapp_models
 from . import serializers as accountapp_serializers
@@ -27,7 +26,6 @@ from .tasks import (
 
 # TODO: User의 회원 탈퇴 기능 구현을 고민해야 한다. Delete로 퉁 칠 것인가? is_active를 False로 변환할 것인가?
 class UserViewSet(
-    das_mixins.ActionSerializerMixin,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
@@ -119,6 +117,11 @@ class UserViewSet(
             send_mail_to_find_password(email, new_password)
             return Response(status=status.HTTP_200_OK)
         return Response(data=serializer.errors, status=status.HTTP_404_NOT_FOUND)
+
+    def get_serializer_class(self):
+        if serializer_class := self.serializer_action_class.get(self.action, None):
+            return serializer_class
+        return self.serializer_class
 
     def perform_create(self, serializer):
         user = serializer.save()
