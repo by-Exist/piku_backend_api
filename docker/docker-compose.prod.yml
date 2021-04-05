@@ -1,0 +1,62 @@
+version: '3.1'
+
+
+services:
+
+  postgres:
+    image: postgres:9.6.21
+    restart: always
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8
+    expose:
+      - "5432"
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data
+
+  django_with_gunicorn:
+    image: bolk9652/backend:0.0.4
+    restart: always
+    depends_on: 
+      - postgres
+    environment: 
+      - DJANGO_SETTINGS_MODULE=backend.settings.prod
+    volumes:
+      - django_with_gunicorn_static_volume:/app/backend/static/
+      - django_with_gunicorn_media_volume:/app/backend/media/
+    secrets:
+      - prod.env
+    working_dir: /app
+    command: > 
+      sh -c "python manage.py collectstatic --no-input &&
+             python manage.py migrate &&
+             gunicorn backend.wsgi:application
+      "
+    expose:
+      - "8000"
+
+  nginx_with_certbot:
+    image: staticfloat/nginx-certbot
+    ports:
+        - "80:80"
+        - "443:443"
+    environment:
+        CERTBOT_EMAIL: bolk9652@gmail.com
+    volumes:
+      # sftp - /etc/nginx/conf.d
+      - /etc/nginx/conf.d:/etc/nginx/user.conf.d:ro
+      - letsencrypt:/etc/letsencrypt
+      - django_with_gunicorn_static_volume:/home/app/web/staticfiles
+      - django_with_gunicorn_media_volume:/home/app/web/mediafiles
+
+volumes:
+  postgres_volume:
+  django_with_gunicorn_static_volume:
+  django_with_gunicorn_media_volume:
+  letsencrypt:
+
+secrets:
+  prod.env:
+    external: true

@@ -86,8 +86,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
-STATIC_ROOT = BASE_DIR / PROJECT_NAME / "_static"
-MEDIA_ROOT = BASE_DIR / PROJECT_NAME / "_media"
+STATIC_ROOT = BASE_DIR / PROJECT_NAME / "static"
+MEDIA_ROOT = BASE_DIR / PROJECT_NAME / "media"
 
 
 # Rest Framework Settings

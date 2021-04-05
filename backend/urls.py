@@ -6,7 +6,6 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
     SpectacularRedocView,
 )
-import debug_toolbar
 
 urlpatterns = [
     path("", include("accountapp.urls")),
@@ -16,6 +15,8 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
+
+    import debug_toolbar
 
     static_urlpatterns = [
         *static(settings.STATIC_URL, document_root=settings.STATIC_ROOT),
