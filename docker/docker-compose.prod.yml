@@ -17,7 +17,7 @@ services:
       - postgres_volume:/var/lib/postgresql/data
 
   django_with_gunicorn:
-    image: bolk9652/backend:0.0.4
+    image: bolk9652/backend:0.0.8
     restart: always
     depends_on: 
       - postgres
@@ -45,7 +45,8 @@ services:
     environment:
         CERTBOT_EMAIL: bolk9652@gmail.com
     volumes:
-      # sftp - /etc/nginx/conf.d
+      # sftp - /etc/nginx/conf.d, /etc/certbot/extra_domains
+      # - /etc/certbot/extra_domains:/etc/certbot/extra_domains:ro
       - /etc/nginx/conf.d:/etc/nginx/user.conf.d:ro
       - letsencrypt:/etc/letsencrypt
       - django_with_gunicorn_static_volume:/home/app/web/staticfiles
