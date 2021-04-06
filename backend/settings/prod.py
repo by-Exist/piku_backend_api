@@ -17,6 +17,14 @@ ALLOWED_HOSTS = [*env("DJANGO_ALLOWED_HOSTS").split(" ")]
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 DATABASES = {"default": env.db("DJANGO_DATABASE_URL")}
 
+# Rest Framework Settings
+# detail => from rest_framework.settings import DEFAULTS
+REST_FRAMEWORK |= {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
+
 # Logging
 LOGGING = {
     "version": 1,

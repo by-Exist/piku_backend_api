@@ -52,3 +52,14 @@ SPECTACULAR_SETTINGS = {
     "COMPONENT_SPLIT_REQUEST": True,
     "DISABLE_ERRORS_AND_WARNINGS": False,
 }
+
+
+# Rest Framework Settings
+# detail => from rest_framework.settings import DEFAULTS
+REST_FRAMEWORK |= {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
