@@ -31,6 +31,9 @@
 ## 예제 사이트
 
 - [API 문서 (redoc)](http://www.piku.kro.kr/api/schema/redoc/)
+  - Server : [vultr](https://www.vultr.com/)
+  - DNS : [내도메인.한국](https://xn--220b31d95hq8o.xn--3e0b707e/)
+  - SSL : [let's encrypt](https://letsencrypt.org/)
 
 ## RESTful API 구조
 
@@ -81,15 +84,16 @@
 ## 더미 데이터 추가
 
 - python manage.py setup_dummy_data
-- 자세한 설정은 dummydata/factorys, dummydata/setup_dummy_data.py를 살펴본다.
+- 자세한 설정은 dummydata/factorys, dummydata/setup_dummy_data.py 코드를 살펴봅니다.
 
 ## 나머지 작업들 (수행 여부 불확실)
 
-- selery와 rabbitmq를 활용하여 accountapp의 email 전송 로직을 비동기로 수행한다.
-- 캐싱용 redis 컨테이너를 추가하고, View 로직의 효율적인 처리를 위해 캐싱을 적용한다.
-- database를 호스팅 서비스로 분리한다.
-- static file을 storage 서비스로 분리한다.
-- 캐싱용 서버를 대여하고 redis를 분리한다.
-- log를 효율적으로 관리할 수 있도록 sentry를 활용한다.
-- 부하 테스트를 진행한다.
-- Front-end를 구현하고, ALLOWED_HOSTS 설정을 변경한다.
+- selery와 rabbitmq를 활용하여 accountapp의 email 전송 로직을 비동기로 수행하도록 변경합니다.
+- 캐싱용 redis 컨테이너를 추가하고, View 로직의 효율적인 처리를 위해 캐싱을 적용합니다.
+- database를 호스팅 서비스로 분리합니다.
+- static file을 storage 서비스로 분리합니다.
+- 캐싱용 서버를 대여하고 redis를 분리합니다.
+- log를 효율적으로 관리할 수 있도록 sentry를 활용합니다.
+- 부하 테스트를 진행합니다.
+- Front-end를 구현합니다.
+- ALLOWED_HOSTS 설정을 변경합니다.
