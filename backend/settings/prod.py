@@ -16,3 +16,37 @@ ALLOWED_HOSTS = [*env("DJANGO_ALLOWED_HOSTS").split(" ")]
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 DATABASES = {"default": env.db("DJANGO_DATABASE_URL")}
+
+# Logging
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "root": {
+        "level": "INFO",
+        "handlers": ["file"],
+    },
+    "handlers": {
+        "file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": "/var/log/django.log",
+            "formatter": "app",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["file"],
+            "level": "INFO",
+            "propagate": True,
+        },
+    },
+    "formatters": {
+        "app": {
+            "format": (
+                u"%(asctime)s [%(levelname)-8s] "
+                "(%(module)s.%(funcName)s) %(message)s"
+            ),
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+    },
+}
