@@ -1,8 +1,11 @@
 .vscode/
 __pycache__/
 _env/
-_media/
-_static/
-_email/
-local.env
+email/
+media/
+static/
+.gitignore
+dev.env
+prod.env
 README.md
+backend/settings/prod.db.env

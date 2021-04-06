@@ -4,8 +4,13 @@
 _env/
 _erd/
 docker/
-backend/_media/
-backend/_static/
+dummydata/
+backend/media/
+backend/static/
+backend/email/
+backend/settings/*.env
+backend/settings/action.*
+backend/settings/dev.*
 __pycache__
 .gitignore
 .dockerignore
