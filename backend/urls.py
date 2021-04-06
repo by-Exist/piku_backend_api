@@ -12,6 +12,14 @@ urlpatterns = [
     path("", include("tokenapp.urls")),
     path("", include("worldcupapp.urls")),
     path("", include("reportapp.urls")),
+    # SpectacularRedocView나 SpectacularSwaggerView는
+    # SpectacularAPIView를 필요로 한다. (url_name)
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "api/schema/redoc/",
+        SpectacularRedocView.as_view(url_name="schema"),
+        name="redoc",
+    ),
 ]
 
 if settings.DEBUG:
