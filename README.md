@@ -28,13 +28,6 @@
   - dev.txt - 개발 환경 전용 라이브러리
   - prod.txt - 배포 환경 전용 라이브러리
 
-## 예제 사이트
-
-- [API 문서 (redoc)](http://www.piku.kro.kr/api/schema/redoc/)
-  - Server : [vultr](https://www.vultr.com/)
-  - DNS : [내도메인.한국](https://xn--220b31d95hq8o.xn--3e0b707e/)
-  - SSL : [let's encrypt](https://letsencrypt.org/)
-
 ## RESTful API 구조
 
 - [예제 사이트](http://www.piku.kro.kr/api/schema/redoc/)에서 확인할 수 있습니다.
